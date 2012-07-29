@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -14,15 +15,16 @@ import javax.persistence.Id;
 import org.apache.commons.io.IOUtils;
 import org.apache.tapestry5.json.JSONArray;
 import org.apache.tapestry5.json.JSONObject;
+import org.springframework.util.StringUtils;
 
 import at.furti.springrest.client.exception.IncomaptiblePropertyTypeException;
 import at.furti.springrest.client.http.link.Link;
 
 public class JsonUtils {
 
-	private static final String LINKS = "_links";
-	private static final String HREF = "href";
-	private static final String REL = "rel";
+	public static final String LINKS = "_links";
+	public static final String HREF = "href";
+	public static final String REL = "rel";
 
 	/**
 	 * @param in
@@ -30,10 +32,15 @@ public class JsonUtils {
 	 * @throws IOException
 	 */
 	public static JSONObject toJsonObject(InputStream in) throws IOException {
-		JSONObject object = new JSONObject(IOUtils.toString(in, "UTF-8"));
+		String jsonstring = IOUtils.toString(in, "UTF-8");
 		in.close();
 
-		return object;
+		// If empty response or no json object --> null
+		if (!StringUtils.hasText(jsonstring) || jsonstring.charAt(0) != '{') {
+			return null;
+		}
+
+		return new JSONObject(jsonstring);
 	}
 
 	/**
@@ -62,6 +69,10 @@ public class JsonUtils {
 	public static List<Link> getLinks(JSONObject object, String rel) {
 		List<Link> links = new ArrayList<Link>();
 
+		if (object == null) {
+			return links;
+		}
+
 		JSONArray jsonLinks = object.getJSONArray(LINKS);
 
 		Iterator<Object> it = jsonLinks.iterator();
@@ -72,7 +83,8 @@ public class JsonUtils {
 			String linkRel = jsonLink.getString(REL);
 
 			// if the rel is null --> all links should be added.
-			// if the rel is not null and it is equal the rel of the link --> add it
+			// if the rel is not null and it is equal the rel of the link -->
+			// add it
 			if (rel == null || linkRel.equals(rel)) {
 				links.add(new Link(linkRel, jsonLink.getString(HREF)));
 			}
@@ -87,17 +99,17 @@ public class JsonUtils {
 
 		for (Field field : allFields) {
 			field.setAccessible(true);
-			String property = field.getName();
 
 			// Set null if not available
-			if (!jsonObject.has(property) || jsonObject.isNull(property)) {
+			if (!jsonObject.has(field.getName())
+					|| jsonObject.isNull(field.getName())) {
 				field.set(o, null);
 			} else {
-				setValue(field, o, jsonObject.get(property));
+				setValue(field, o, jsonObject);
 			}
 		}
-		
-		//Check the links section --> for lazy initialization
+
+		// Check the links section --> for lazy initialization
 	}
 
 	/**
@@ -107,15 +119,26 @@ public class JsonUtils {
 	 * @throws IncomaptiblePropertyTypeException
 	 * @throws IllegalAccessException
 	 */
-	private static void setValue(Field field, Object o, Object value)
+	private static void setValue(Field field, Object o, JSONObject data)
 			throws IncomaptiblePropertyTypeException, IllegalAccessException {
 		Class<?> t = field.getType();
 
-		if (!t.isAssignableFrom(value.getClass())) {
-			throw new IncomaptiblePropertyTypeException(field, value);
-		}
+		try {
+			// Convert value to date
+			if (Date.class.isAssignableFrom(t)) {
+				long value = data.getLong(field.getName());
 
-		field.set(o, value);
+				field.set(o, new Date(value));
+			} else if (String.class.isAssignableFrom(t)) {
+				field.set(o, data.getString(field.getName()));
+			} else {
+				// TODO: convert object;
+			}
+
+		} catch (RuntimeException ex) {
+			throw new IncomaptiblePropertyTypeException(field, data.get(field
+					.getName()));
+		}
 	}
 
 	/**
@@ -136,8 +159,10 @@ public class JsonUtils {
 			for (Field field : currentFields) {
 				int modifiers = field.getModifiers();
 
-				if (!Modifier.isStatic(modifiers) && Modifier.isPrivate(modifiers)
-						&& !Modifier.isTransient(modifiers)) {
+				if (!Modifier.isStatic(modifiers)
+						&& Modifier.isPrivate(modifiers)
+						&& !Modifier.isTransient(modifiers)
+						&& !Modifier.isFinal(modifiers)) {
 					fields.add(field);
 				}
 			}

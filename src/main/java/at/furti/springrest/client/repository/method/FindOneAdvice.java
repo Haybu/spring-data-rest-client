@@ -9,7 +9,6 @@ import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.DataRestClient.ParameterType;
 import at.furti.springrest.client.http.link.LinkManager;
 import at.furti.springrest.client.repository.RepositoryEntry;
-import at.furti.springrest.client.util.JsonUtils;
 import at.furti.springrest.client.util.ReturnValueUtils;
 
 public class FindOneAdvice extends RepositoryMethodAdvice {
@@ -29,19 +28,22 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 	}
 
 	@Override
-	protected void handleResponse(MethodInvocation invoaction, JSONObject response) {
-		try {
-			Object value = ReturnValueUtils.convertReturnValue(getEntry().getType(),
-					response, getEntry().getRepoRel(), getClient());
+	protected void handleResponse(MethodInvocation invoaction,
+			JSONObject response) {
+		if (response == null) {
+			invoaction.setReturnValue(null);
+		} else {
 
-			if (value != null) {
-				JsonUtils.setId(value, getParameters(invoaction));
+			try {
+				Object value = ReturnValueUtils.convertReturnValue(getEntry()
+						.getType(), response, getEntry().getRepoRel(),
+						getClient());
+
+				invoaction.setReturnValue(value);
+			} catch (Exception ex) {
+				invoaction.setCheckedException(ex);
+				invoaction.rethrow();
 			}
-
-			invoaction.setReturnValue(value);
-		} catch (Exception ex) {
-			invoaction.setCheckedException(ex);
-			invoaction.rethrow();
 		}
 	}
 }
