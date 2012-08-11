@@ -1,4 +1,4 @@
-package at.furti.springrest.client.util;
+package at.furti.springrest.client.repository.lazy;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import org.apache.tapestry5.json.JSONObject;
 import at.furti.springrest.client.exception.ObjectLoadingException;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.Link;
+import at.furti.springrest.client.json.LinkWorker;
 
 /**
  * @author Daniel
@@ -26,7 +27,7 @@ public class LazyInitializingIterable<T extends Object> implements Iterable<T> {
 
 	public LazyInitializingIterable(JSONObject object, String rel,
 			DataRestClient client, Class<T> type) {
-		links = JsonUtils.getLinks(object, rel);
+		links = new LinkWorker(object).getLinks(rel);
 
 		loadedObjects = new Boolean[links.size()];
 		objects = new ArrayList<T>();
@@ -46,12 +47,13 @@ public class LazyInitializingIterable<T extends Object> implements Iterable<T> {
 	 * @return
 	 */
 	private T getObject(int index) throws IOException {
-		if (loadedObjects[index] == null || !loadedObjects[index].booleanValue()) {
+		if (loadedObjects[index] == null
+				|| !loadedObjects[index].booleanValue()) {
 			// TODO: load object
-//			InputStream stream = client.executeGet(RestCollectionUtils
-//					.toCollection(links.get(index).getHref()));
+			// InputStream stream = client.executeGet(RestCollectionUtils
+			// .toCollection(links.get(index).getHref()));
 
-//			System.out.println(JsonUtils.toJsonObject(stream));
+			// System.out.println(JsonUtils.toJsonObject(stream));
 			loadedObjects[index] = Boolean.TRUE;
 		}
 

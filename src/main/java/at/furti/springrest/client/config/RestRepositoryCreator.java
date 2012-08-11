@@ -1,25 +1,27 @@
 package at.furti.springrest.client.config;
 
-import org.apache.tapestry5.plastic.ClassInstantiator;
-import org.apache.tapestry5.plastic.PlasticManager;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.util.Assert;
 
+import at.furti.springrest.client.bytecode.RepositoryClassTransformer;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.LinkManager;
-import at.furti.springrest.client.repository.RepositoryClassTransformer;
-import at.furti.springrest.client.repository.RepositoryEntry;
+import at.furti.springrest.client.util.RestCollectionUtils;
 
+/**
+ * {@link FactoryBean} that creates an instance of a Repository for
+ * communication with a rest server.
+ * 
+ * @author Daniel Furtlehner
+ * 
+ */
 public class RestRepositoryCreator implements FactoryBean<Object> {
 
-	private PlasticManager plasticManager = PlasticManager
-			.withContextClassLoader().create();
-
 	private DataRestClient client;
-	private RepositoryEntry entry;
+	private RepositoryConfig entry;
 	private LinkManager linkManager;
 
-	public RestRepositoryCreator(DataRestClient client, RepositoryEntry entry,
+	public RestRepositoryCreator(DataRestClient client, RepositoryConfig entry,
 			LinkManager linkManager) {
 		Assert.notNull(client, "Client is required");
 		Assert.notNull(entry, "Entry is required");
@@ -31,13 +33,13 @@ public class RestRepositoryCreator implements FactoryBean<Object> {
 	}
 
 	public Object getObject() throws Exception {
-		ClassInstantiator<?> instantiator = plasticManager.createProxy(entry
-				.getRepoClass(), new RepositoryClassTransformer(entry, client,
-				linkManager));
-
-		Object repository = instantiator.newInstance();
-
-		return repository;
+		return RepositoryClassTransformer.getInstance().getTransformedObject(
+				entry.getRepoClass(),
+				RestCollectionUtils.toMap(
+						RepositoryClassTransformer.CLIENT_KEY, client,
+						RepositoryClassTransformer.LINK_MANAGER_KEY,
+						linkManager,
+						RepositoryClassTransformer.REPO_CONFIG_KEY, entry));
 	}
 
 	public Class<?> getObjectType() {

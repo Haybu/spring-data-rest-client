@@ -5,17 +5,16 @@ import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 
 import org.apache.tapestry5.json.JSONObject;
-import org.apache.tapestry5.plastic.ClassInstantiator;
-import org.apache.tapestry5.plastic.PlasticManager;
 
+import at.furti.springrest.client.bytecode.EntityClassTransformer;
 import at.furti.springrest.client.exception.IncomaptiblePropertyTypeException;
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.repository.EntityClassTransformer;
+import at.furti.springrest.client.json.EntityWorker;
+import at.furti.springrest.client.json.JsonUtils;
+import at.furti.springrest.client.json.LinkWorker;
+import at.furti.springrest.client.repository.lazy.LazyInitializingIterable;
 
 public final class ReturnValueUtils {
-
-	private static PlasticManager PLASTIC_MANAGER = PlasticManager
-			.withContextClassLoader().create();
 
 	/**
 	 * @param returnType
@@ -44,12 +43,20 @@ public final class ReturnValueUtils {
 			IllegalAccessException, InstantiationException,
 			IncomaptiblePropertyTypeException {
 
-		ClassInstantiator<?> instantiator = PLASTIC_MANAGER.createClass(type,
-				new EntityClassTransformer(data));
+		LinkWorker linkWorker = new LinkWorker(data);
 
-		Object o = instantiator.newInstance();
+		EntityWorker entityWorker = new EntityWorker(data, client, rel);
 
-		JsonUtils.fillObject(o, data);
+		Object o = EntityClassTransformer.getInstance().getTransformedObject(
+				type,
+				RestCollectionUtils.toMap(EntityClassTransformer.SELF_LINK_KEY,
+						linkWorker.getSelfLink(),
+						EntityClassTransformer.LAZY_PROPERTIES_KEY,
+						linkWorker.getLazyProperties(),
+						EntityClassTransformer.REPO_REL_KEY, rel,
+						EntityClassTransformer.CLIENT_KEY, client));
+
+		entityWorker.fillObject(o);
 
 		return o;
 	}

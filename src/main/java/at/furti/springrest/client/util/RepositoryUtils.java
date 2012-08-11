@@ -1,5 +1,6 @@
 package at.furti.springrest.client.util;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -22,6 +23,47 @@ public final class RepositoryUtils {
 	public static final RepositoryMethods TOPLEVEL_METHODS = new RepositoryMethods();
 
 	/**
+	 * @param entityClass
+	 * @return
+	 */
+	public static String getEntityRel(Class<?> entityClass) {
+		if (entityClass == null) {
+			return null;
+		}
+
+		if (entityClass.isAnnotationPresent(RestResource.class)) {
+			RestResource annotation = entityClass
+					.getAnnotation(RestResource.class);
+
+			if (StringUtils.isNotEmpty(annotation.rel())) {
+				return annotation.rel();
+			}
+		}
+
+		return entityClass.getSimpleName();
+	}
+
+	/**
+	 * @param field
+	 * @return
+	 */
+	public static Object getFieldRel(Field field) {
+		if (field == null) {
+			return null;
+		}
+
+		if (field.isAnnotationPresent(RestResource.class)) {
+			RestResource annotation = field.getAnnotation(RestResource.class);
+
+			if (StringUtils.isNotEmpty(annotation.rel())) {
+				return annotation.rel();
+			}
+		}
+
+		return field.getName();
+	}
+
+	/**
 	 * @param repoClass
 	 * @return
 	 */
@@ -35,7 +77,8 @@ public final class RepositoryUtils {
 	 */
 	public static String getRepositoryRel(Class<?> repoClass) {
 		if (repoClass.isAnnotationPresent(RestResource.class)) {
-			RestResource annotation = repoClass.getAnnotation(RestResource.class);
+			RestResource annotation = repoClass
+					.getAnnotation(RestResource.class);
 
 			if (StringUtils.isNotEmpty(annotation.rel())) {
 				return annotation.rel();
@@ -51,7 +94,7 @@ public final class RepositoryUtils {
 	 * Returns the rel for the method.
 	 * 
 	 * @param m
-	 *          the method
+	 *            the method
 	 * @return the rel for the method. May be null for methods with the same
 	 *         location as the repository. Like findAll
 	 */
@@ -134,15 +177,6 @@ public final class RepositoryUtils {
 				}
 			}
 		}
-
-		// Type[] typeArguments = ((ParameterizedType) t).getActualTypeArguments();
-		//
-		// if (typeArguments.length == 0) {
-		// return null;
-		// }
-		//
-		// Type typeToReturn = typeArguments[0];
-		// }
 		return null;
 	}
 }

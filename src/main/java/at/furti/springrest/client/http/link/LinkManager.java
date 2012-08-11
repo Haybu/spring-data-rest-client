@@ -1,30 +1,36 @@
 package at.furti.springrest.client.http.link;
 
-import java.io.InputStream;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import at.furti.springrest.client.base.ClientAware;
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.DataRestClient.ParameterType;
+import at.furti.springrest.client.http.Request;
+import at.furti.springrest.client.http.Response;
 import at.furti.springrest.client.http.exception.RepositoryNotExposedException;
-import at.furti.springrest.client.util.JsonUtils;
+import at.furti.springrest.client.json.JsonUtils;
+import at.furti.springrest.client.json.LinkWorker;
 import at.furti.springrest.client.util.RepositoryUtils;
-import at.furti.springrest.client.util.RestCollectionUtils;
 
 /**
  * @author Daniel
  * 
  */
-public class LinkManager {
+public class LinkManager extends ClientAware {
 
-	private DataRestClient client;
+	private static final Logger logger = LoggerFactory
+			.getLogger(LinkManager.class);
 
 	private Map<String, LinkEntry> links;
 
 	public LinkManager(DataRestClient client) {
-		this.client = client;
+		super(client);
 	}
 
 	/**
@@ -83,10 +89,11 @@ public class LinkManager {
 		}
 
 		try {
-			InputStream stream = client.executeGet(null, ParameterType.NONE);
+			Response response = execute(RequestType.GET, new Request());
 
 			this.links = new HashMap<String, LinkManager.LinkEntry>();
-			Collection<Link> list = JsonUtils.getLinks(stream);
+
+			Collection<Link> list = getLinks(response);
 
 			if (links != null) {
 				for (Link link : list) {
@@ -94,8 +101,7 @@ public class LinkManager {
 				}
 			}
 		} catch (Exception ex) {
-			// TODO: log error and do nothing. Try again later
-			ex.printStackTrace();
+			logger.error("Error getting links from server", ex);
 		}
 	}
 
@@ -127,10 +133,10 @@ public class LinkManager {
 			}
 
 			try {
-				InputStream stream = client.executeGet(RestCollectionUtils
-						.toCollection(getLink().getHref(), "search"), ParameterType.NONE);
+				Response response = execute(RequestType.GET, new Request(
+						getLink().getHref() + "/search"));
 
-				Collection<Link> list = JsonUtils.getLinks(stream);
+				Collection<Link> list = getLinks(response);
 
 				searchLinks = new HashMap<String, Link>();
 
@@ -140,10 +146,15 @@ public class LinkManager {
 					}
 				}
 			} catch (Exception ex) {
-				// TODO: log error and do nothing. Try again later
-				ex.printStackTrace();
+				logger.error("Error getting searchlinks from server", ex);
 			}
+
 			searchLinks = new HashMap<String, Link>();
 		}
+	}
+
+	private Collection<Link> getLinks(Response response) throws IOException {
+		return new LinkWorker(JsonUtils.toJsonObject(response.getStream()))
+				.getLinks();
 	}
 }

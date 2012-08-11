@@ -1,15 +1,15 @@
-package at.furti.springrest.client.repository;
+package at.furti.springrest.client.config;
 
 import org.springframework.util.Assert;
 
-public class RepositoryEntry {
+public class RepositoryConfig {
 
 	private Class<?> repoClass;
 	private String repoId;
 	private String repoRel;
 	private Class<?> type;
 
-	public RepositoryEntry(Class<?> repoClass, String repoId, String repoRel, Class<?> type) {
+	public RepositoryConfig(Class<?> repoClass, String repoId, String repoRel, Class<?> type) {
 		super();
 		
 		Assert.notNull(repoClass, "RepoClass must not be null");
@@ -49,11 +49,11 @@ public class RepositoryEntry {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (!(obj instanceof RepositoryEntry)) {
+		if (!(obj instanceof RepositoryConfig)) {
 			return false;
 		}
 
-		return getRepoClass().equals(((RepositoryEntry) obj).getClass());
+		return getRepoClass().equals(((RepositoryConfig) obj).getClass());
 	}
 
 	@Override

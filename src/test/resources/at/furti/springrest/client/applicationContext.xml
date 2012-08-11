@@ -20,5 +20,5 @@
 		<constructor-arg value="http://furti.springrest.cloudfoundry.com" />
 	</bean>
 	
-	<restrepository:repositories basePackage="at.furti.springrest.client.data" client-ref="client"/>
+	<restrepository:repositories basePackage="at.furti.springrest.client.data" client-ref="client" />
 </beans>

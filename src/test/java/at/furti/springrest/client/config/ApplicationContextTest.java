@@ -1,7 +1,6 @@
 package at.furti.springrest.client.config;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -13,7 +12,8 @@ import org.testng.annotations.Test;
 
 import at.furti.springrest.client.data.PersonRepository;
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.DataRestClient.ParameterType;
+import at.furti.springrest.client.http.Request;
+import at.furti.springrest.client.http.Response;
 import at.furti.springrest.client.http.link.LinkManager;
 
 @ContextConfiguration(locations = "classpath:at/furti/springrest/client/applicationContext.xml")
@@ -40,9 +40,9 @@ public class ApplicationContextTest extends AbstractTestNGSpringContextTests {
 	public void testClient() throws IOException {
 		Assert.assertNotNull(client, "Client should not be null");
 
-		InputStream response = client.executeGet(null, ParameterType.NONE);
+		Response response = client.executeGet(new Request());
 
-		String s = IOUtils.toString(response);
+		String s = IOUtils.toString(response.getStream());
 
 		Assert.assertTrue(StringUtils.isNotBlank(s), "Blank response");
 	}
@@ -56,7 +56,7 @@ public class ApplicationContextTest extends AbstractTestNGSpringContextTests {
 		Assert.assertEquals(href,
 				"http://furti.springrest.cloudfoundry.com/person",
 				"PersonRepository href not equals");
-		
+
 		href = linkManager.getHref("address");
 
 		Assert.assertEquals(href,

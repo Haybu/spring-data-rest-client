@@ -1,54 +1,53 @@
 package at.furti.springrest.client.repository.method;
 
 import java.io.IOException;
-import java.io.InputStream;
 
-import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodAdvice;
 import org.apache.tapestry5.plastic.MethodInvocation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 
+import at.furti.springrest.client.base.ClientAware;
+import at.furti.springrest.client.config.RepositoryConfig;
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.DataRestClient.ParameterType;
+import at.furti.springrest.client.http.Request;
+import at.furti.springrest.client.http.Response;
 import at.furti.springrest.client.http.exception.RepositoryNotExposedException;
 import at.furti.springrest.client.http.link.LinkManager;
-import at.furti.springrest.client.repository.RepositoryEntry;
-import at.furti.springrest.client.util.JsonUtils;
-import at.furti.springrest.client.util.RestCollectionUtils;
 
 /**
  * @author Daniel
  * 
  */
-public abstract class RepositoryMethodAdvice implements MethodAdvice {
+public abstract class RepositoryMethodAdvice extends ClientAware implements
+		MethodAdvice {
+
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 
 	protected LinkManager linkManager;
 	protected HttpMethod method;
-	protected ParameterType paramType;
-	protected RepositoryEntry entry;
-	protected DataRestClient client;
+	protected RepositoryConfig entry;
 
 	public RepositoryMethodAdvice(LinkManager linkManager, HttpMethod method,
-			ParameterType paramType, RepositoryEntry entry, DataRestClient client) {
+			RepositoryConfig entry, DataRestClient client) {
+		super(client);
+
 		Assert.notNull(linkManager, "LinkManager must not be null");
 		Assert.notNull(method, "HttpMethod must not be null");
-		Assert.notNull(paramType, "ParameterType must not be null");
 		Assert.notNull(entry, "Entry must not be null");
-		Assert.notNull(client, "Client must not be null");
 
 		this.linkManager = linkManager;
 		this.method = method;
 		this.entry = entry;
-		this.client = client;
-		this.paramType = paramType;
 	}
 
 	public void advise(MethodInvocation invocation) {
 		try {
-			InputStream stream = executeMethod(invocation);
+			Response response = executeMethod(invocation);
 
-			handleResponse(invocation, JsonUtils.toJsonObject(stream));
+			handleResponse(invocation, response);
 		} catch (Exception e) {
 			invocation.setCheckedException(e);
 			invocation.rethrow();
@@ -58,37 +57,32 @@ public abstract class RepositoryMethodAdvice implements MethodAdvice {
 	/**
 	 * @return
 	 */
-	protected InputStream executeMethod(MethodInvocation invocation)
+	protected Response executeMethod(MethodInvocation invocation)
 			throws IOException, RepositoryNotExposedException {
 		String link = linkManager.getHref(entry.getRepoRel(),
 				invocation.getMethod());
 
-		// TODO: logging
-		System.out.println(link);
+		logger.debug("Using href [{}] for methodcall", link);
 
 		switch (method) {
 		case DELETE:
-			return client.executeDelete(RestCollectionUtils.toCollection(link));
+			return execute(RequestType.DELETE, createReqest(link, invocation));
 		case POST:
-			return client.executePost(RestCollectionUtils.toCollection(link));
+			return execute(RequestType.POST, createReqest(link, invocation));
 		case GET:
-			return client.executeGet(RestCollectionUtils.toCollection(link),
-					paramType, getParameters(invocation));
+			return execute(RequestType.GET, createReqest(link, invocation));
 		}
 
 		return null;
 	}
 
-	protected RepositoryEntry getEntry() {
+	protected RepositoryConfig getEntry() {
 		return entry;
 	}
 
-	protected DataRestClient getClient() {
-		return client;
-	}
-
-	protected abstract Object getParameters(MethodInvocation invocation);
+	protected abstract Request createReqest(String link,
+			MethodInvocation invocation);
 
 	protected abstract void handleResponse(MethodInvocation invoaction,
-			JSONObject response);
+			Response response);
 }

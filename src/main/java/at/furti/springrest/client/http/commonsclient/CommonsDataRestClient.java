@@ -1,8 +1,6 @@
 package at.furti.springrest.client.http.commonsclient;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 import java.util.Map;
 
 import org.apache.http.HttpResponse;
@@ -16,6 +14,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 
 import at.furti.springrest.client.http.DataRestClientBase;
+import at.furti.springrest.client.http.Request;
+import at.furti.springrest.client.http.Response;
 
 /**
  * @author Daniel
@@ -34,20 +34,20 @@ public class CommonsDataRestClient extends DataRestClientBase {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * at.furti.springrest.client.http.DataRestClient#executeGet(java.lang.String)
+	 * at.furti.springrest.client.http.DataRestClient#executeGet(java.lang.String
+	 * )
 	 */
-	public InputStream executeGet(Collection<String> paths, ParameterType type,
-			Object... parameters) throws IOException {
-		String urlToUse = buildUrl(paths, type, parameters);
+	public Response executeGet(Request request) throws IOException {
+		String urlToUse = buildUrl(request);
 
-		HttpGet request = new HttpGet(urlToUse);
+		HttpGet getRequest = new HttpGet(urlToUse);
 
-		setupRequest(request);
+		setupRequest(getRequest);
 
 		try {
-			HttpResponse response = client.execute(request);
+			HttpResponse response = client.execute(getRequest);
 
-			return response.getEntity().getContent();
+			return new Response(response.getEntity().getContent());
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
@@ -60,20 +60,20 @@ public class CommonsDataRestClient extends DataRestClientBase {
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * at.furti.springrest.client.http.DataRestClient#executePost(java.lang.String
-	 * )
+	 * at.furti.springrest.client.http.DataRestClient#executePost(java.lang.
+	 * String )
 	 */
-	public InputStream executePost(Collection<String> paths) throws IOException {
-		String urlToUse = buildUrl(paths, ParameterType.NONE);
+	public Response executePost(Request request) throws IOException {
+		String urlToUse = buildUrl(request);
 
-		HttpPost request = new HttpPost(urlToUse);
+		HttpPost postRequest = new HttpPost(urlToUse);
 
-		setupRequest(request);
+		setupRequest(postRequest);
 
 		try {
-			HttpResponse response = client.execute(request);
+			HttpResponse response = client.execute(postRequest);
 
-			return response.getEntity().getContent();
+			return new Response(response.getEntity().getContent());
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
@@ -89,17 +89,17 @@ public class CommonsDataRestClient extends DataRestClientBase {
 	 * at.furti.springrest.client.http.DataRestClient#executeDelete(java.lang.
 	 * String)
 	 */
-	public InputStream executeDelete(Collection<String> paths) throws IOException {
-		String urlToUse = buildUrl(paths, ParameterType.NONE);
+	public Response executeDelete(Request request) throws IOException {
+		String urlToUse = buildUrl(request);
 
-		HttpDelete request = new HttpDelete(urlToUse);
+		HttpDelete deleteRequest = new HttpDelete(urlToUse);
 
-		setupRequest(request);
+		setupRequest(deleteRequest);
 
 		try {
-			HttpResponse response = client.execute(request);
+			HttpResponse response = client.execute(deleteRequest);
 
-			return response.getEntity().getContent();
+			return new Response(response.getEntity().getContent());
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
@@ -121,7 +121,8 @@ public class CommonsDataRestClient extends DataRestClientBase {
 		}
 
 		for (String headerName : headers.keySet()) {
-			request.setHeader(new BasicHeader(headerName, headers.get(headerName)));
+			request.setHeader(new BasicHeader(headerName, headers
+					.get(headerName)));
 		}
 	}
 }

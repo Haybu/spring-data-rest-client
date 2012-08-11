@@ -1,50 +1,38 @@
 package at.furti.springrest.client.http;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
 
 /**
+ * 
  * @author Daniel Furtlehner
  * 
  */
 public interface DataRestClient {
 
-	public enum ParameterType {
-		NONE, QUERY, PATH
-	}
+	/**
+	 * Sends a get request and returns all relevant response data.
+	 * 
+	 * @param request
+	 * @return
+	 * @throws IOException
+	 */
+	public Response executeGet(Request request) throws IOException;
 
 	/**
-	 * Executes a get request to the path. Path is relative.
+	 * Sends a post request and returns the relevant response data.
 	 * 
-	 * Therefor the client has to be aware of the basePath for the application.
-	 * 
-	 * @param path
-	 *          if null a request to the basePath will be performed
+	 * @param request
 	 * @return
+	 * @throws IOException
 	 */
-	public InputStream executeGet(Collection<String> paths, ParameterType parameterType, Object... parameters)
-			throws IOException;
+	public Response executePost(Request request) throws IOException;
 
 	/**
-	 * Executes a post request to the path. Path is relative.
+	 * Sends a delete request and returns the relevant response data.
 	 * 
-	 * Therefor the client has to be aware of the basePath for the application.
-	 * 
-	 * @param path
-	 *          if null a request to the basePath will be performed
+	 * @param request
 	 * @return
+	 * @throws IOException
 	 */
-	public InputStream executePost(Collection<String> paths) throws IOException;
-
-	/**
-	 * Executes a delete request to the path. Path is relative.
-	 * 
-	 * Therefor the client has to be aware of the basePath for the application.
-	 * 
-	 * @param path
-	 *          if null a request to the basePath will be performed
-	 * @return
-	 */
-	public InputStream executeDelete(Collection<String> paths) throws IOException;
+	public Response executeDelete(Request request) throws IOException;
 }

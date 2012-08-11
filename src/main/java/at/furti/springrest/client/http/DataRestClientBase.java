@@ -1,12 +1,10 @@
 package at.furti.springrest.client.http;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.util.Assert;
-import org.springframework.util.CollectionUtils;
 import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -55,100 +53,43 @@ public abstract class DataRestClientBase implements DataRestClient {
 	 * 
 	 * @param path
 	 * @param parameters
-	 *          String[] with key value pairs. must have an even number of entries
+	 *            String[] with key value pairs. must have an even number of
+	 *            entries
 	 * @return
 	 */
-	protected String buildUrl(Collection<String> paths, ParameterType type,
-			Object... parameters) {
+	protected String buildUrl(Request request) {
 		StringBuilder builder = new StringBuilder();
+		String url = request.getUrl();
 
-		if (basePathNeeded(paths)) {
+		if (basePathNeeded(url)) {
 			builder.append(basePath);
-		}
 
-		if (paths != null) {
-			for (String path : paths) {
-				if (StringUtils.isNotBlank(path)) {
-					if (builder.length() > 0
-							&& builder.lastIndexOf("/") != builder.length()
-							&& !path.startsWith("/")) {
-						builder.append("/");
-					}
-
-					builder.append(path);
-				}
+			if (!basePath.endsWith("/") && !url.startsWith("/")) {
+				builder.append("/");
 			}
 		}
 
-		appendParameters(builder, type, parameters);
+		if (url != null) {
+			builder.append(url);
+		}
 
-		UriComponents components = UriComponentsBuilder.fromHttpUrl(builder.toString()).build();
-		
+		UriComponents components = UriComponentsBuilder.fromHttpUrl(
+				builder.toString()).build();
+
 		UriComponents encoded = components.encode();
 		return encoded.toUriString();
-	}
-
-	/**
-	 * @param url
-	 * @param type
-	 * @param parameters
-	 */
-	private void appendParameters(StringBuilder url, ParameterType type,
-			Object... parameters) {
-		if (type == ParameterType.NONE || parameters == null
-				|| parameters.length == 0) {
-			return;
-		}
-
-		switch (type) {
-		case QUERY: {
-			Assert.isTrue(parameters.length % 2 == 0,
-					"Parameter array must have a even number of entries");
-
-			// If the url does not end with an ? append it
-			if (url.lastIndexOf("?") != url.length()) {
-				url.append("?");
-			}
-
-			for (int i = 0; i < parameters.length; i += 2) {
-				// Append a & after the first parameter
-				if (i > 1) {
-					url.append("&");
-				}
-
-				url.append(parameters[i]).append("=").append(parameters[i + 1]);
-			}
-
-			break;
-		}
-		case PATH: {
-			for (Object o : parameters) {
-				String parameter = o != null ? o.toString() : null;
-
-				if (StringUtils.isNotBlank(parameter)) {
-					if (url.length() > 0 && url.lastIndexOf("/") != url.length()
-							&& !parameter.startsWith("/")) {
-						url.append("/");
-					}
-
-					url.append(parameter);
-				}
-			}
-			break;
-		}
-		}
 	}
 
 	/**
 	 * @param paths
 	 * @return
 	 */
-	private boolean basePathNeeded(Collection<String> paths) {
-		if (CollectionUtils.isEmpty(paths)) {
+	private boolean basePathNeeded(String url) {
+		if (StringUtils.isEmpty(url)) {
 			return true;
 		}
 
-		return !paths.iterator().next().startsWith("http");
+		return !url.startsWith("http");
 	}
 
 	/**
