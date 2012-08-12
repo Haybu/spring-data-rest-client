@@ -53,6 +53,10 @@ public class MethodAdviceFactory {
 			return new FindAllMethodAdvice(linkManager, entry, client);
 		}
 
+		if (m.getName().equals(COUNT)) {
+			return new CountMethodAdvice(linkManager, entry, client);
+		}
+
 		// TODO: other advices
 		return new NotExportedAdvice();
 	}
