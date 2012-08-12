@@ -1,16 +1,17 @@
 package at.furti.springrest.client.util;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Collection;
 
 import org.apache.tapestry5.json.JSONObject;
+import org.springframework.util.CollectionUtils;
 
 import at.furti.springrest.client.bytecode.EntityClassTransformer;
 import at.furti.springrest.client.exception.IncomaptiblePropertyTypeException;
 import at.furti.springrest.client.http.DataRestClient;
+import at.furti.springrest.client.http.link.Link;
 import at.furti.springrest.client.json.EntityWorker;
-import at.furti.springrest.client.json.JsonUtils;
 import at.furti.springrest.client.json.LinkWorker;
 import at.furti.springrest.client.repository.lazy.LazyInitializingIterable;
 
@@ -21,13 +22,24 @@ public final class ReturnValueUtils {
 	 * @param stream
 	 * @return
 	 */
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public static Object convertCollection(Class<?> collectionType,
-			InputStream in, String rel, DataRestClient client)
-			throws IOException {
+	public static Object convertCollection(Class<?> entityType,
+			JSONObject data, String repoRel, DataRestClient client) {
+		if (data == null) {
+			return null;
+		}
+
+		LinkWorker worker = new LinkWorker(data);
+		String entityRel = repoRel + "." + entityType.getSimpleName();
+
+		Collection<Link> links = worker.getLinks(entityRel);
+
+		// If no links where found --> return null
+		if (CollectionUtils.isEmpty(links)) {
+			return null;
+		}
+
 		// Return a lazy initializing iteratable
-		return new LazyInitializingIterable(JsonUtils.toJsonObject(in), rel,
-				client, collectionType);
+		return new LazyInitializingIterable(links, repoRel, client, entityType);
 	}
 
 	/**

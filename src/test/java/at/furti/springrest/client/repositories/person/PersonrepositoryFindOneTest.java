@@ -1,4 +1,4 @@
-package at.furti.springrest.client.repositories;
+package at.furti.springrest.client.repositories.person;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -14,8 +14,10 @@ import at.furti.springrest.client.data.PersonEntity;
 import at.furti.springrest.client.data.PersonRepository;
 import at.furti.springrest.client.util.IdentifierUtils;
 
+@Test(groups = { "all", "person" })
 @ContextConfiguration(locations = "classpath:at/furti/springrest/client/applicationContext.xml")
-public class PersonrepositoryTest extends AbstractTestNGSpringContextTests {
+public class PersonrepositoryFindOneTest extends
+		AbstractTestNGSpringContextTests {
 
 	@Autowired(required = false)
 	private PersonRepository repository;
@@ -27,7 +29,6 @@ public class PersonrepositoryTest extends AbstractTestNGSpringContextTests {
 
 	@Test(dependsOnMethods = "personRepositoryInject")
 	public void findOne1() {
-		PersonEntity.class.getClassLoader();
 		PersonEntity person = repository.findOne(new Integer(1));
 
 		Assert.assertNotNull(person, "Person with id [1] not found");
@@ -53,7 +54,7 @@ public class PersonrepositoryTest extends AbstractTestNGSpringContextTests {
 				"PLZ not equals");
 		Assert.assertEquals(person.getAddress().getCity().getName(),
 				"Musterstadt", "Name not equals");
-		
+
 		person.setAddress(null);
 		Assert.assertNull(person.getAddress(), "Address is not null");
 

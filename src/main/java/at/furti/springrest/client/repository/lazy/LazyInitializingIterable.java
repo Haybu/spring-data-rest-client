@@ -1,70 +1,87 @@
 package at.furti.springrest.client.repository.lazy;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.tapestry5.json.JSONObject;
+import org.springframework.util.CollectionUtils;
 
-import at.furti.springrest.client.exception.ObjectLoadingException;
+import at.furti.springrest.client.base.ClientAware;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.Link;
-import at.furti.springrest.client.json.LinkWorker;
+import at.furti.springrest.client.util.ReturnValueUtils;
 
 /**
  * @author Daniel
  * 
  */
-public class LazyInitializingIterable<T extends Object> implements Iterable<T> {
+public class LazyInitializingIterable extends ClientAware implements
+		Iterable<Object> {
 
-	private List<Link> links;
-	private List<T> objects;
-	private Boolean[] loadedObjects;
-	private DataRestClient client;
+	private List<Entry> entries;
+	private Class<?> type;
+	private String repoRel;
 
-	private LazyInitializingIterator iterator;
+	public LazyInitializingIterable(Collection<Link> links, String repoRel,
+			DataRestClient client, Class<?> type) {
+		super(client);
+		this.entries = new ArrayList<Entry>();
+		this.type = type;
+		this.repoRel = repoRel;
 
-	public LazyInitializingIterable(JSONObject object, String rel,
-			DataRestClient client, Class<T> type) {
-		links = new LinkWorker(object).getLinks(rel);
-
-		loadedObjects = new Boolean[links.size()];
-		objects = new ArrayList<T>();
+		initEntries(links);
 	}
 
-	public Iterator<T> iterator() {
-		if (iterator == null) {
-			iterator = new LazyInitializingIterator();
-		}
-
-		return iterator();
+	public Iterator<Object> iterator() {
+		return new LazyInitializingIterator();
 	}
 
 	/**
-	 * Checks if the object at the index was loaded
+	 * Loads the object at index from the server and returns it.
 	 * 
 	 * @return
+	 * @throws IndexOutOfBoundsException
+	 *             if the index is larger than the size of the entries
 	 */
-	private T getObject(int index) throws IOException {
-		if (loadedObjects[index] == null
-				|| !loadedObjects[index].booleanValue()) {
-			// TODO: load object
-			// InputStream stream = client.executeGet(RestCollectionUtils
-			// .toCollection(links.get(index).getHref()));
+	private Object getObject(int index) throws Exception {
+		Entry entry = entries.get(index);
 
-			// System.out.println(JsonUtils.toJsonObject(stream));
-			loadedObjects[index] = Boolean.TRUE;
+		if (!entry.loaded) {
+			JSONObject data = getObjectFromServer(entry.link.getHref());
+
+			if (data != null) {
+				entry.object = ReturnValueUtils.convertReturnValue(type, data,
+						repoRel, getClient());
+			}
+
+			entry.loaded = true;
 		}
 
-		return objects.get(index);
+		return entry.object;
+	}
+
+	/**
+	 * Creates an entry for each link in the list.
+	 * 
+	 * @param links
+	 */
+	private void initEntries(Collection<Link> links) {
+		if (CollectionUtils.isEmpty(links)) {
+			return;
+		}
+
+		for (Link link : links) {
+			entries.add(new Entry(link));
+		}
 	}
 
 	/**
 	 * @author Daniel
 	 * 
 	 */
-	private class LazyInitializingIterator implements Iterator<T> {
+	private class LazyInitializingIterator implements Iterator<Object> {
 
 		private int currentIndex;
 
@@ -75,21 +92,41 @@ public class LazyInitializingIterable<T extends Object> implements Iterable<T> {
 		public boolean hasNext() {
 			currentIndex++;
 
-			return currentIndex <= links.size();
+			return currentIndex < entries.size();
 		}
 
-		public T next() {
+		public Object next() {
 			try {
 				return getObject(currentIndex);
-			} catch (IOException ex) {
-				throw new ObjectLoadingException();
+			} catch (Exception ex) {
+				// TODO: rethrow the exception
+				return null;
 			}
 		}
 
 		public void remove() {
-			// TODO implement remove
+			if (currentIndex == -1) {
+				throw new IllegalStateException(
+						"Could not remove index before call to next");
+			}
 
+			entries.remove(currentIndex);
+			currentIndex -= 1;
 		}
+	}
 
+	/**
+	 * @author Daniel Furtlehner
+	 * 
+	 */
+	private class Entry {
+		private Object object;
+		private Link link;
+		private boolean loaded;
+
+		public Entry(Link link) {
+			this.link = link;
+			this.loaded = false;
+		}
 	}
 }

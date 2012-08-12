@@ -9,8 +9,8 @@ import org.apache.tapestry5.plastic.PlasticClassTransformer;
 import at.furti.springrest.client.config.RepositoryConfig;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.LinkManager;
-import at.furti.springrest.client.repository.method.NotImplementedMethodAdvice;
-import at.furti.springrest.client.util.MethodAdviceFactory;
+import at.furti.springrest.client.repository.method.MethodAdviceFactory;
+import at.furti.springrest.client.repository.method.NotExportedAdvice;
 
 /**
  * Class transformer used to implement a JPA repository interface.
@@ -54,7 +54,7 @@ public class RepositoryPlasticClassTransformer implements
 		if (advice != null) {
 			return advice;
 		} else {
-			return new NotImplementedMethodAdvice();
+			return new NotExportedAdvice();
 		}
 	}
 }
