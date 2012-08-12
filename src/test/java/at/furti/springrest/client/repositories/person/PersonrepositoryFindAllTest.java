@@ -1,5 +1,6 @@
 package at.furti.springrest.client.repositories.person;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.Iterator;
@@ -35,6 +36,31 @@ public class PersonrepositoryFindAllTest extends
 		Assert.assertNotNull(persons, "No Personsn found");
 		checkSize(persons);
 		checkContent(persons);
+	}
+
+	@Test(dependsOnMethods = "personRepositoryInject")
+	public void findAllIds() {
+		Iterable<PersonEntity> persons = repository
+				.findAll(Arrays.asList(1, 0));
+
+		Assert.assertNotNull(persons, "No Personsn found");
+		checkSize(persons);
+
+		Iterator<PersonEntity> it = persons.iterator();
+
+		boolean nullFound = false;
+
+		while (it.hasNext()) {
+			PersonEntity p = it.next();
+
+			if (p == null) {
+				nullFound = true;
+			} else {
+				check1(p);
+			}
+		}
+
+		Assert.assertTrue(nullFound, "No Null entry was found");
 	}
 
 	/**
@@ -111,8 +137,7 @@ public class PersonrepositoryFindAllTest extends
 
 		Assert.assertEquals(person.getFirstName(), "Franz",
 				"Firstname not equals");
-		Assert.assertEquals(person.getLastName(), "Test",
-				"Lastname not equals");
+		Assert.assertEquals(person.getLastName(), "Test", "Lastname not equals");
 		Assert.assertTrue(
 				DateUtils.isSameDay(person.getBirthDate(),
 						expectedBirthDate.getTime()), "Birthdate not equals");

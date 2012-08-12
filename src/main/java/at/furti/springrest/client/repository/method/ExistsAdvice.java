@@ -18,7 +18,8 @@ public class ExistsAdvice extends FindOneAdvice {
 	}
 
 	@Override
-	protected void handleResponse(MethodInvocation invoaction, Response response) {
+	protected void handleResponse(MethodInvocation invoaction,
+			Response response, String link) {
 		/*
 		 * To check if a entity exists simply check if a response with a self
 		 * link is provided when calling the link for the object.

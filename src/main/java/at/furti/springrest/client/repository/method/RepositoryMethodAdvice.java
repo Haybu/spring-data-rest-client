@@ -45,9 +45,14 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 
 	public void advise(MethodInvocation invocation) {
 		try {
-			Response response = executeMethod(invocation);
+			String link = linkManager.getHref(entry.getRepoRel(),
+					invocation.getMethod());
 
-			handleResponse(invocation, response);
+			logger.debug("Using href [{}] for methodcall", link);
+
+			Response response = executeMethod(invocation, link);
+
+			handleResponse(invocation, response, link);
 		} catch (Exception e) {
 			invocation.setCheckedException(e);
 			invocation.rethrow();
@@ -57,20 +62,21 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 	/**
 	 * @return
 	 */
-	protected Response executeMethod(MethodInvocation invocation)
+	protected Response executeMethod(MethodInvocation invocation, String link)
 			throws IOException, RepositoryNotExposedException {
-		String link = linkManager.getHref(entry.getRepoRel(),
-				invocation.getMethod());
+		Request request = createReqest(link, invocation);
 
-		logger.debug("Using href [{}] for methodcall", link);
+		if (request == null) {
+			return null;
+		}
 
 		switch (method) {
 		case DELETE:
-			return execute(RequestType.DELETE, createReqest(link, invocation));
+			return execute(RequestType.DELETE, request);
 		case POST:
-			return execute(RequestType.POST, createReqest(link, invocation));
+			return execute(RequestType.POST, request);
 		case GET:
-			return execute(RequestType.GET, createReqest(link, invocation));
+			return execute(RequestType.GET, request);
 		}
 
 		return null;
@@ -83,6 +89,6 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 	protected abstract Request createReqest(String link,
 			MethodInvocation invocation);
 
-	protected abstract void handleResponse(MethodInvocation invoaction,
-			Response response);
+	protected abstract void handleResponse(MethodInvocation invocation,
+			Response response, String link);
 }

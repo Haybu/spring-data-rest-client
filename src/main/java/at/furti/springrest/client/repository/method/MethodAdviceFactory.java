@@ -15,8 +15,7 @@ public class MethodAdviceFactory {
 												// object
 	private static final String FIND_ONE = "findOne";
 	private static final String EXISTS = "exists";
-	private static final String FIND_ALL = "findAll"; // TODO: With iterable and
-														// without
+	private static final String FIND_ALL = "findAll";
 	private static final String COUNT = "count";
 	private static final String DELETE = "delete"; // TODO: with id, object and
 													// iterable

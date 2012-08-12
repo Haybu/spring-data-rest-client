@@ -25,7 +25,8 @@ public class CountMethodAdvice extends FindAllMethodAdvice {
 	}
 
 	@Override
-	protected void handleResponse(MethodInvocation invoaction, Response response) {
+	protected void handleResponse(MethodInvocation invoaction,
+			Response response, String link) {
 		if (response == null) {
 			invoaction.setReturnValue(new Long(0));
 		} else {

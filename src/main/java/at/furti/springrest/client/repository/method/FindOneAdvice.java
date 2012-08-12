@@ -32,7 +32,8 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 	}
 
 	@Override
-	protected void handleResponse(MethodInvocation invoaction, Response response) {
+	protected void handleResponse(MethodInvocation invoaction,
+			Response response, String link) {
 		if (response == null || response.getStream() == null) {
 			invoaction.setReturnValue(null);
 		} else {
