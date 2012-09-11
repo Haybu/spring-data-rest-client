@@ -1,17 +1,43 @@
 package at.furti.springrest.client.http;
 
-import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Response {
 
-	private InputStream stream;
+	private byte[] body;
+	private Map<String, String> headers;
 
-	public Response(InputStream stream) {
+	public Response(byte[] body) {
 		super();
-		this.stream = stream;
+		this.body = body;
 	}
 
-	public InputStream getStream() {
-		return stream;
+	public byte[] getBody() {
+		return body;
+	}
+
+	public Map<String, String> getHeaders() {
+		return headers;
+	}
+
+	public void setHeaders(Map<String, String> headers) {
+		this.headers = headers;
+	}
+
+	public String getHeader(String name) {
+		if (headers == null) {
+			return null;
+		}
+
+		return headers.get(name);
+	}
+
+	public void setHeader(String name, String value) {
+		if (headers == null) {
+			this.headers = new HashMap<String, String>();
+		}
+
+		this.headers.put(name, value);
 	}
 }

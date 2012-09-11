@@ -2,7 +2,6 @@ package at.furti.springrest.client.config;
 
 import java.io.IOException;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -42,7 +41,7 @@ public class ApplicationContextTest extends AbstractTestNGSpringContextTests {
 
 		Response response = client.executeGet(new Request());
 
-		String s = IOUtils.toString(response.getStream());
+		String s = new String(response.getBody());
 
 		Assert.assertTrue(StringUtils.isNotBlank(s), "Blank response");
 	}

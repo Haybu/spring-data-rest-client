@@ -12,11 +12,6 @@ public class MissformedLinkException extends JsonException {
 	public MissformedLinkException() {
 	}
 
-	public MissformedLinkException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public MissformedLinkException(String message, Throwable cause) {
 		super(message, cause);
 	}

@@ -10,19 +10,21 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-@Entity(name="Address")
+import org.testng.Assert;
+
+@Entity(name = "Address")
 public class AddressEntity {
 
 	@Id
-	@Column(name="addressid")
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@Column(name = "addressid")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Integer addressId;
-	
-	@Column(name="street")
+
+	@Column(name = "street")
 	private String street;
-	
-	@ManyToOne(fetch=FetchType.EAGER, cascade=CascadeType.MERGE)
-	@JoinColumn(name="cityId")
+
+	@ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+	@JoinColumn(name = "cityId")
 	private CityEntity city;
 
 	public Integer getAddressId() {
@@ -47,5 +49,19 @@ public class AddressEntity {
 
 	public void setCity(CityEntity city) {
 		this.city = city;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (!(obj instanceof AddressEntity)) {
+			return false;
+		}
+
+		AddressEntity other = (AddressEntity) obj;
+
+		Assert.assertEquals(other.getStreet(), getStreet(), "Street not equals");
+		Assert.assertEquals(other.getCity(), getCity(), "City not equals");
+
+		return true;
 	}
 }

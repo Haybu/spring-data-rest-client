@@ -2,6 +2,9 @@ package at.furti.springrest.client.bytecode.plastic;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -14,12 +17,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
 import at.furti.springrest.client.http.DataRestClient;
+import at.furti.springrest.client.repository.lazy.LazyCollectionLoadingHandler;
 import at.furti.springrest.client.repository.lazy.LazyLoadingHandler;
 import at.furti.springrest.client.repository.lazy.LazyObjectLoadingHandler;
-import at.furti.springrest.client.util.IdentifierUtils;
 import at.furti.springrest.client.util.RepositoryUtils;
 
-public class EntityPlasticClassTransformer implements PlasticClassTransformer {
+public class EntityPlasticClassTransformer extends
+		AbstractEntityPlasticClassTransformer implements
+		PlasticClassTransformer {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -57,13 +62,7 @@ public class EntityPlasticClassTransformer implements PlasticClassTransformer {
 	 */
 	public void transform(PlasticClass plasticClass) {
 		// At first add the field for the self link.
-		PlasticField selfUriField = plasticClass.introduceField(String.class,
-				IdentifierUtils.IDENTIFIER_NAME);
-
-		// Set the selfLink if not null
-		if (selfLink != null) {
-			selfUriField.inject(selfLink);
-		}
+		appendSelfUriField(plasticClass, selfLink);
 
 		try {
 			// initialize all lazy loading properties
@@ -73,10 +72,10 @@ public class EntityPlasticClassTransformer implements PlasticClassTransformer {
 
 				for (String propertyRel : lazyProperties.keySet()) {
 					Field propertyField = getPropertyField(superClass,
-							superClass, propertyRel);
+							propertyRel);
 
 					if (propertyField != null) {
-						LazyObjectLoadingHandler handler = createLazyLoadingHandler(
+						LazyLoadingHandler handler = createLazyLoadingHandler(
 								propertyField, lazyProperties.get(propertyRel));
 
 						PlasticField newField = plasticClass.introduceField(
@@ -136,11 +135,34 @@ public class EntityPlasticClassTransformer implements PlasticClassTransformer {
 	 * @param propertyField
 	 * @return
 	 */
-	private LazyObjectLoadingHandler createLazyLoadingHandler(
-			Field propertyField, String href) {
-		// TODO: check for type if collection use a collection handler
-		return new LazyObjectLoadingHandler(client, href,
-				propertyField.getType(), repoRel);
+	private LazyLoadingHandler createLazyLoadingHandler(Field propertyField,
+			String href) {
+		if (Collection.class.isAssignableFrom(propertyField.getType())) {
+			return new LazyCollectionLoadingHandler(propertyField.getType(),
+					getGenericType(propertyField), client, href, repoRel);
+		} else {
+			return new LazyObjectLoadingHandler(client, href,
+					propertyField.getType(), repoRel);
+		}
+	}
+
+	/**
+	 * @param propertyField
+	 * @return
+	 */
+	private Class<?> getGenericType(Field propertyField) {
+		Type type = propertyField.getGenericType();
+
+		if (type instanceof ParameterizedType) {
+			ParameterizedType paramType = (ParameterizedType) type;
+
+			for (Type actualType : paramType.getActualTypeArguments()) {
+				if (actualType instanceof Class) {
+					return (Class<?>) actualType;
+				}
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -148,15 +170,14 @@ public class EntityPlasticClassTransformer implements PlasticClassTransformer {
 	 * @param propertyRel
 	 * @return
 	 */
-	private Field getPropertyField(Class<?> type, Class<?> superClass,
-			String propertyRel) {
+	private Field getPropertyField(Class<?> superClass, String propertyRel) {
 		Assert.notNull(superClass, "Superclass must not be null");
 		Assert.notNull(propertyRel, "PropertyRel must not be null");
 
 		Field[] fields = superClass.getDeclaredFields();
 
 		for (Field field : fields) {
-			String fieldRel = generateRel(type, field);
+			String fieldRel = generateRel(superClass, field);
 
 			if (fieldRel.equals(propertyRel)) {
 				return field;

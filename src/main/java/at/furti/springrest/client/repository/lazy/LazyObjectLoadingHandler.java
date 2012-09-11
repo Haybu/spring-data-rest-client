@@ -3,10 +3,10 @@ package at.furti.springrest.client.repository.lazy;
 import java.util.Collection;
 
 import org.apache.tapestry5.json.JSONObject;
+import org.springframework.util.CollectionUtils;
 
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.Link;
-import at.furti.springrest.client.json.LinkWorker;
 import at.furti.springrest.client.repository.exception.LinkCountException;
 import at.furti.springrest.client.util.ReturnValueUtils;
 
@@ -25,13 +25,10 @@ public class LazyObjectLoadingHandler extends LazyLoadingHandlerBase {
 	@Override
 	protected Object loadObject() {
 		try {
-			// Read the links for the object from the server
-			JSONObject linkResponse = getObjectFromServer(getHref());
-			LinkWorker linkWorker = new LinkWorker(linkResponse);
-			Collection<Link> links = linkWorker.getLinks();
+			Collection<Link> links = getLinks();
 
 			// No links found --> no object to fill
-			if (links == null || links.size() == 0) {
+			if (CollectionUtils.isEmpty(links)) {
 				return null;
 			}
 
@@ -58,6 +55,7 @@ public class LazyObjectLoadingHandler extends LazyLoadingHandlerBase {
 					repoRel, getClient());
 		} catch (Exception ex) {
 			logger.error("Error instantiating Object", ex);
+			// TODO: rethrow exception??
 		}
 
 		return null;

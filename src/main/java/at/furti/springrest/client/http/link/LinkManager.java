@@ -154,7 +154,7 @@ public class LinkManager extends ClientAware {
 	}
 
 	private Collection<Link> getLinks(Response response) throws IOException {
-		return new LinkWorker(JsonUtils.toJsonObject(response.getStream()))
+		return new LinkWorker(JsonUtils.toJsonObject(response.getBody()))
 				.getLinks();
 	}
 }

@@ -11,8 +11,7 @@ import at.furti.springrest.client.http.link.LinkManager;
 
 public class MethodAdviceFactory {
 
-	private static final String SAVE = "save"; // TODO: WIth iterable and with
-												// object
+	private static final String SAVE = "save";
 	private static final String FIND_ONE = "findOne";
 	private static final String EXISTS = "exists";
 	private static final String FIND_ALL = "findAll";
@@ -56,7 +55,18 @@ public class MethodAdviceFactory {
 			return new CountMethodAdvice(linkManager, entry, client);
 		}
 
-		// TODO: other advices
+		if (m.getName().equals(SAVE)) {
+			return new SaveMethodAdvice(linkManager, entry, client);
+		}
+
+		if (m.getName().equals(DELETE)) {
+			return new DeleteMethodAdvice(linkManager, entry, client);
+		}
+
+		if (m.getName().equals(DELETE_ALL)) {
+			return new DeleteAllMethodAdvice(linkManager, entry, client);
+		}
+
 		return new NotExportedAdvice();
 	}
 }

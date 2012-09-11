@@ -1,5 +1,7 @@
 package at.furti.springrest.client.repository.method;
 
+import java.util.List;
+
 import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodInvocation;
 
@@ -19,16 +21,18 @@ public class ExistsAdvice extends FindOneAdvice {
 
 	@Override
 	protected void handleResponse(MethodInvocation invoaction,
-			Response response, String link) {
+			List<Response> responses, String link) {
+		Response response = getFirstResponse(responses);
+
 		/*
 		 * To check if a entity exists simply check if a response with a self
 		 * link is provided when calling the link for the object.
 		 */
-		if (response == null || response.getStream() == null) {
+		if (response == null || response.getBody() == null) {
 			invoaction.setReturnValue(false);
 		} else {
 			try {
-				JSONObject data = JsonUtils.toJsonObject(response.getStream());
+				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
 				if (data == null) {
 					invoaction.setReturnValue(false);

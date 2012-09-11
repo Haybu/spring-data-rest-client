@@ -1,5 +1,6 @@
 package at.furti.springrest.client.http;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -20,6 +21,10 @@ public class Request {
 	private String path;
 	private Map<String, Object> queryParameters;
 	private Map<PathParameterKey, Object> pathParameters;
+
+	private byte[] body;
+	private String contentType;
+	private Charset contentEncoding;
 
 	public Request() {
 		this("");
@@ -131,6 +136,14 @@ public class Request {
 		return newPath;
 	}
 
+	public byte[] getBody() {
+		return body;
+	}
+
+	public void setBody(byte[] body) {
+		this.body = body;
+	}
+
 	/**
 	 * @author Daniel Furtlehner
 	 * 
@@ -175,5 +188,37 @@ public class Request {
 
 			return pattern;
 		}
+	}
+
+	/**
+	 * If contentType == null "application/json" is returned.
+	 * 
+	 * @return
+	 */
+	public String getContentType() {
+		if (contentType == null) {
+			return "application/json";
+		}
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
+	}
+
+	/**
+	 * if contentEncoding == null "UTF-8" is returned
+	 * @return
+	 */
+	public Charset getContentEncoding() {
+		if (contentEncoding == null) {
+			return Charset.forName("UTF-8");
+		}
+
+		return contentEncoding;
+	}
+
+	public void setContentEncoding(Charset contentEncoding) {
+		this.contentEncoding = contentEncoding;
 	}
 }

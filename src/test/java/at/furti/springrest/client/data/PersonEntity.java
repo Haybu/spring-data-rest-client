@@ -12,7 +12,8 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
-import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.testng.Assert;
 
 @Entity(name = "Person")
 public class PersonEntity {
@@ -81,7 +82,18 @@ public class PersonEntity {
 			return false;
 		}
 
-		return ObjectUtils.equals(getPersonId(),
-				((PersonEntity) obj).getPersonId());
+		PersonEntity other = (PersonEntity) obj;
+
+		Assert.assertEquals(other.getFirstName(), getFirstName(),
+				"Firstname not equals");
+		Assert.assertEquals(other.getLastName(), getLastName(),
+				"Lastname not equals");
+		Assert.assertTrue(
+				DateUtils.isSameDay(other.getBirthDate(), getBirthDate()),
+				"Birthdate not equals");
+		Assert.assertEquals(other.getAddress(), getAddress(),
+				"Address not equals");
+
+		return true;
 	}
 }

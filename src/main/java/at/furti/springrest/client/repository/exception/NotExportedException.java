@@ -8,11 +8,6 @@ public class NotExportedException extends RepositoryException {
 		super();
 	}
 
-	public NotExportedException(String message, Throwable cause,
-			boolean enableSuppression, boolean writableStackTrace) {
-		super(message, cause, enableSuppression, writableStackTrace);
-	}
-
 	public NotExportedException(String message, Throwable cause) {
 		super(message, cause);
 	}

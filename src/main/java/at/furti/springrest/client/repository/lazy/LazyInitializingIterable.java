@@ -27,7 +27,6 @@ public class LazyInitializingIterable extends ClientAware implements
 	public LazyInitializingIterable(Collection<Link> links, String repoRel,
 			DataRestClient client, Class<?> type) {
 		super(client);
-		this.entries = new ArrayList<Entry>();
 		this.type = type;
 		this.repoRel = repoRel;
 
@@ -45,21 +44,28 @@ public class LazyInitializingIterable extends ClientAware implements
 	 * @throws IndexOutOfBoundsException
 	 *             if the index is larger than the size of the entries
 	 */
-	private Object getObject(int index) throws Exception {
-		Entry entry = entries.get(index);
-
-		if (!entry.loaded) {
-			JSONObject data = getObjectFromServer(entry.link.getHref());
-
-			if (data != null) {
-				entry.object = ReturnValueUtils.convertReturnValue(type, data,
-						repoRel, getClient());
-			}
-
-			entry.loaded = true;
+	protected Object getObject(int index) throws Exception {
+		if (entries == null) {
+			return null;
 		}
 
-		return entry.object;
+		Entry entry = entries.get(index);
+
+		if (entry != null) {
+			if (!entry.loaded) {
+				JSONObject data = getObjectFromServer(entry.link.getHref());
+
+				if (data != null) {
+					entry.object = ReturnValueUtils.convertReturnValue(type,
+							data, repoRel, getClient());
+				}
+
+				entry.loaded = true;
+			}
+			return entry.object;
+		}
+
+		return null;
 	}
 
 	/**
@@ -68,6 +74,8 @@ public class LazyInitializingIterable extends ClientAware implements
 	 * @param links
 	 */
 	private void initEntries(Collection<Link> links) {
+		entries = new ArrayList<Entry>();
+
 		if (CollectionUtils.isEmpty(links)) {
 			return;
 		}

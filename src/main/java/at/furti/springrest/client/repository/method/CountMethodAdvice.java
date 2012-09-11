@@ -1,6 +1,7 @@
 package at.furti.springrest.client.repository.method;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodInvocation;
@@ -26,12 +27,14 @@ public class CountMethodAdvice extends FindAllMethodAdvice {
 
 	@Override
 	protected void handleResponse(MethodInvocation invoaction,
-			Response response, String link) {
+			List<Response> responses, String link) {
+		Response response = getFirstResponse(responses);
+		
 		if (response == null) {
 			invoaction.setReturnValue(new Long(0));
 		} else {
 			try {
-				JSONObject data = JsonUtils.toJsonObject(response.getStream());
+				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
 				if (data == null) {
 					invoaction.setReturnValue(new Long(0));

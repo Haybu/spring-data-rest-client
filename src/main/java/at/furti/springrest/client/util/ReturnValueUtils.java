@@ -11,7 +11,7 @@ import at.furti.springrest.client.bytecode.EntityClassTransformer;
 import at.furti.springrest.client.exception.IncomaptiblePropertyTypeException;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.Link;
-import at.furti.springrest.client.json.EntityWorker;
+import at.furti.springrest.client.json.JsonToEntityWorker;
 import at.furti.springrest.client.json.LinkWorker;
 import at.furti.springrest.client.repository.lazy.LazyInitializingIterable;
 
@@ -57,7 +57,7 @@ public final class ReturnValueUtils {
 
 		LinkWorker linkWorker = new LinkWorker(data);
 
-		EntityWorker entityWorker = new EntityWorker(data, client, rel);
+		JsonToEntityWorker entityWorker = new JsonToEntityWorker(data, client, rel);
 
 		Object o = EntityClassTransformer.getInstance().getTransformedObject(
 				type,

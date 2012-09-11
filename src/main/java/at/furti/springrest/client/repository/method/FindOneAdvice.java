@@ -1,5 +1,7 @@
 package at.furti.springrest.client.repository.method;
 
+import java.util.List;
+
 import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodInvocation;
 import org.springframework.http.HttpMethod;
@@ -22,8 +24,8 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 	}
 
 	@Override
-	protected Request createReqest(String link, MethodInvocation invocation) {
-		Object parameter = invocation.getParameter(0);
+	protected Request createReqest(String link, Object... params) {
+		Object parameter = params[0];
 
 		Assert.notNull(parameter, "Id should not be null");
 
@@ -33,13 +35,15 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 
 	@Override
 	protected void handleResponse(MethodInvocation invoaction,
-			Response response, String link) {
-		if (response == null || response.getStream() == null) {
+			List<Response> responses, String link) {
+		Response response = getFirstResponse(responses);
+		
+		if (response == null || response.getBody() == null) {
 			invoaction.setReturnValue(null);
 		} else {
 
 			try {
-				JSONObject data = JsonUtils.toJsonObject(response.getStream());
+				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
 				if (data == null) {
 					invoaction.setReturnValue(null);

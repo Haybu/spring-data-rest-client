@@ -19,7 +19,7 @@ import at.furti.springrest.client.json.exception.MissformedLinkException;
  * @author Daniel Furtlehner
  * 
  */
-public class LinkWorker extends JsonWorker {
+public class LinkWorker extends JsonWorker<JSONObject> {
 
 	private static final String LINKS = "_links";
 	private static final String HREF = "href";
@@ -71,7 +71,7 @@ public class LinkWorker extends JsonWorker {
 				// if the rel is not null and it is equal the rel of the link
 				// -->
 				// add it
-				if (rel == null || linkRel.equals(rel)) {
+				if (rel == null || linkRel.startsWith(rel)) {
 					links.add(new Link(linkRel, jsonLink.getString(HREF)));
 				}
 			} catch (RuntimeException ex) {

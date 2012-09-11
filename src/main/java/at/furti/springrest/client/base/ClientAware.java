@@ -39,7 +39,7 @@ public abstract class ClientAware {
 		Response response = execute(RequestType.GET, new Request(url));
 
 		return response == null ? null : JsonUtils.toJsonObject(response
-				.getStream());
+				.getBody());
 	}
 
 	/**

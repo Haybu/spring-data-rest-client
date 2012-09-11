@@ -3,6 +3,8 @@ package at.furti.springrest.client.http.commonsclient;
 import java.io.IOException;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -10,6 +12,7 @@ import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
 
@@ -47,7 +50,7 @@ public class CommonsDataRestClient extends DataRestClientBase {
 		try {
 			HttpResponse response = client.execute(getRequest);
 
-			return new Response(response.getEntity().getContent());
+			return createResponse(response);
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
@@ -70,16 +73,35 @@ public class CommonsDataRestClient extends DataRestClientBase {
 
 		setupRequest(postRequest);
 
+		setupBody(postRequest, request);
+
 		try {
 			HttpResponse response = client.execute(postRequest);
 
-			return new Response(response.getEntity().getContent());
+			return createResponse(response);
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
 		}
 
 		return null;
+	}
+
+	/**
+	 * @param postRequest
+	 * @param toUse
+	 */
+	private void setupBody(HttpPost postRequest, Request toUse) {
+		if (toUse.getBody() == null) {
+			return;
+		}
+
+		ByteArrayEntity entity = new ByteArrayEntity(toUse.getBody());
+
+		entity.setContentEncoding(toUse.getContentEncoding().name());
+		entity.setContentType(toUse.getContentType());
+
+		postRequest.setEntity(entity);
 	}
 
 	/*
@@ -99,7 +121,7 @@ public class CommonsDataRestClient extends DataRestClientBase {
 		try {
 			HttpResponse response = client.execute(deleteRequest);
 
-			return new Response(response.getEntity().getContent());
+			return createResponse(response);
 		} catch (ClientProtocolException ex) {
 			// TODO: rethrow the exception with springrest exception
 			ex.printStackTrace();
@@ -124,5 +146,26 @@ public class CommonsDataRestClient extends DataRestClientBase {
 			request.setHeader(new BasicHeader(headerName, headers
 					.get(headerName)));
 		}
+	}
+
+	/**
+	 * @param response
+	 * @return
+	 */
+	private Response createResponse(HttpResponse response) throws IOException {
+		Response ret = new Response(IOUtils.toByteArray(response.getEntity()
+				.getContent()));
+
+		response.getEntity().getContent().close();
+
+		Header[] headers = response.getAllHeaders();
+
+		if (headers != null) {
+			for (Header header : headers) {
+				ret.setHeader(header.getName(), header.getValue());
+			}
+		}
+
+		return ret;
 	}
 }

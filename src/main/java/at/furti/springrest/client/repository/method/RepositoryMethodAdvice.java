@@ -1,6 +1,9 @@
 package at.furti.springrest.client.repository.method;
 
-import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import org.apache.tapestry5.plastic.MethodAdvice;
 import org.apache.tapestry5.plastic.MethodInvocation;
@@ -14,7 +17,6 @@ import at.furti.springrest.client.config.RepositoryConfig;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Response;
-import at.furti.springrest.client.http.exception.RepositoryNotExposedException;
 import at.furti.springrest.client.http.link.LinkManager;
 
 /**
@@ -50,21 +52,51 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 
 			logger.debug("Using href [{}] for methodcall", link);
 
-			Response response = executeMethod(invocation, link);
+			Object[] params = getParameters(invocation);
 
-			handleResponse(invocation, response, link);
+			List<Response> responses = new ArrayList<Response>();
+
+			if (shouldIterate(params)) {
+				Iterator<?> it = getIterator(params);
+
+				while (it.hasNext()) {
+					responses.add(executeMethod(link, it.next()));
+				}
+			} else {
+				responses.add(executeMethod(link, params));
+			}
+
+			handleResponse(invocation, responses, link);
 		} catch (Exception e) {
 			invocation.setCheckedException(e);
 			invocation.rethrow();
 		}
 	}
 
+	private Iterator<?> getIterator(Object[] params) {
+		return ((Iterable<?>) params[0]).iterator();
+	}
+
+	/**
+	 * @param params
+	 * @return
+	 */
+	private boolean shouldIterate(Object[] params) {
+		if (params == null || params.length != 1) {
+			return false;
+		}
+
+		Object firstParam = params[0];
+
+		return Iterable.class.isAssignableFrom(firstParam.getClass());
+	}
+
 	/**
 	 * @return
 	 */
-	protected Response executeMethod(MethodInvocation invocation, String link)
-			throws IOException, RepositoryNotExposedException {
-		Request request = createReqest(link, invocation);
+	protected Response executeMethod(String link, Object... params)
+			throws Exception {
+		Request request = createReqest(link, params);
 
 		if (request == null) {
 			return null;
@@ -86,9 +118,42 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 		return entry;
 	}
 
-	protected abstract Request createReqest(String link,
-			MethodInvocation invocation);
+	/**
+	 * @param responses
+	 * @return
+	 */
+	protected Response getFirstResponse(List<Response> responses) {
+		if (responses == null || responses.size() < 1) {
+			return null;
+		}
+
+		return responses.get(0);
+	}
+
+	/**
+	 * @param invocation
+	 * @return
+	 */
+	private Object[] getParameters(MethodInvocation invocation) {
+		Method m = invocation.getMethod();
+
+		Class<?>[] paramTypes = m.getParameterTypes();
+
+		if (paramTypes.length > 0) {
+			Object[] params = new Object[paramTypes.length];
+
+			for (int i = 0; i < paramTypes.length; i++) {
+				params[i] = invocation.getParameter(i);
+			}
+
+			return params;
+		}
+
+		return null;
+	}
+
+	protected abstract Request createReqest(String link, Object... params) throws Exception;
 
 	protected abstract void handleResponse(MethodInvocation invocation,
-			Response response, String link);
+			List<Response> responses, String link);
 }

@@ -28,7 +28,7 @@
 		<dependency>
 			<groupId>org.springframework.data</groupId>
 			<artifactId>spring-data-rest-repository</artifactId>
-			<version>1.0.0.M2</version>
+			<version>1.0.0.RC1</version>
 
 			<exclusions>
 				<exclusion>

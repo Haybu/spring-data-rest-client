@@ -19,7 +19,7 @@ public class IdentifierUtils {
 	 * @return
 	 */
 	public static String getIdentifier(Object object) {
-		Field f = getField(object);
+		Field f = getIdentifierField(object);
 
 		if (f == null) {
 			return null;
@@ -36,25 +36,11 @@ public class IdentifierUtils {
 		return null;
 	}
 
-	// /**
-	// * Set the uri that identifies the object for REST operations.
-	// *
-	// * @param object
-	// * @param href
-	// */
-	// public static void setIdentifier(Object object, String href) {
-	// try {
-	// Field f = getField(object);
-	//
-	// if (f != null) {
-	// f.set(object, href);
-	// }
-	// } catch (IllegalAccessException ex) {
-	// // TODO: logging
-	// }
-	// }
-
-	private static Field getField(Object object) {
+	/**
+	 * @param object
+	 * @return
+	 */
+	public static Field getIdentifierField(Object object) {
 		try {
 			Field f = object.getClass().getDeclaredField(IDENTIFIER_NAME);
 			f.setAccessible(true);

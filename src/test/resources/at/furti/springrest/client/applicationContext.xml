@@ -17,8 +17,10 @@
 
 	<bean id="client"
 		class="at.furti.springrest.client.http.commonsclient.CommonsDataRestClient">
-		<constructor-arg value="http://furti.springrest.cloudfoundry.com" />
+		<constructor-arg value="http://furti-springrest.cloudfoundry.com" />
+<!-- 		<constructor-arg value="http://localhost:8080/springtest" /> -->
 	</bean>
-	
-	<restrepository:repositories basePackage="at.furti.springrest.client.data" client-ref="client" />
+
+	<restrepository:repositories basePackage="at.furti.springrest.client.data"
+		client-ref="client" />
 </beans>
