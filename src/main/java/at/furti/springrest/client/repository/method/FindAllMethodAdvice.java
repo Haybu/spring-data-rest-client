@@ -64,7 +64,7 @@ public class FindAllMethodAdvice extends RepositoryMethodAdvice {
 			for (Response response : responses) {
 				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
-				ret.add(ReturnValueUtils.convertCollection(entry.getType(),
+				ret.add(ReturnValueUtils.convertReturnValue(entry.getType(),
 						data, entry.getRepoRel(), getClient()));
 			}
 		} catch (Exception ex) {

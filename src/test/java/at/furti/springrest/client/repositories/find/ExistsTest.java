@@ -1,20 +1,16 @@
 package at.furti.springrest.client.repositories.find;
 
-import java.util.Arrays;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
-import at.furti.springrest.client.data.find.FindEntity;
 import at.furti.springrest.client.data.find.FindRepository;
-import at.furti.springrest.client.util.FindUtils;
 
 @Test(groups = { "all", "find" })
 @ContextConfiguration(locations = "classpath:at/furti/springrest/client/applicationContext.xml")
-public class FindAllTest extends AbstractTestNGSpringContextTests {
+public class ExistsTest extends AbstractTestNGSpringContextTests {
 
 	@Autowired(required = false)
 	private FindRepository repository;
@@ -31,27 +27,44 @@ public class FindAllTest extends AbstractTestNGSpringContextTests {
 	 * 
 	 */
 	@Test(dependsOnMethods = "repositoryInject")
-	public void findAll() {
-		Iterable<FindEntity> entities = repository.findAll();
-
-		Assert.assertNotNull(entities, "Entities not found");
-
-		FindUtils.checkIterable(entities, Arrays.asList(FindUtils.create1(),
-				FindUtils.create2(), FindUtils.create3(), FindUtils.create4()));
+	public void exists1() {
+		Assert.assertTrue(repository.exists(new Integer(1)),
+				"FindEntity 1 should exist");
+	}
+	
+	/**
+	 * 
+	 */
+	@Test(dependsOnMethods = "repositoryInject")
+	public void exists2() {
+		Assert.assertTrue(repository.exists(new Integer(2)),
+				"FindEntity 2 should exist");
+	}
+	
+	/**
+	 * 
+	 */
+	@Test(dependsOnMethods = "repositoryInject")
+	public void exists3() {
+		Assert.assertTrue(repository.exists(new Integer(3)),
+				"FindEntity 3 should exist");
+	}
+	
+	/**
+	 * 
+	 */
+	@Test(dependsOnMethods = "repositoryInject")
+	public void exists4() {
+		Assert.assertTrue(repository.exists(new Integer(4)),
+				"FindEntity 4 should exist");
 	}
 
 	/**
 	 * 
 	 */
 	@Test(dependsOnMethods = "repositoryInject")
-	public void findAllIterable() {
-		Iterable<FindEntity> entities = repository.findAll(Arrays.asList(
-				new Integer(1), new Integer(3)));
-
-		Assert.assertNotNull(entities, "Entities not found");
-
-		FindUtils.checkIterable(entities, Arrays.asList(FindUtils.create1(),
-				FindUtils.create3()));
+	public void exists0() {
+		Assert.assertFalse(repository.exists(new Integer(0)),
+				"FindEntity 0 should not exist");
 	}
-
 }

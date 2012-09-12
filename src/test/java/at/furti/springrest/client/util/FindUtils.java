@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.TimeZone;
 
 import org.testng.Assert;
@@ -18,9 +20,10 @@ public class FindUtils {
 	 */
 	public static FindEntity create(String stringProperty,
 			Boolean booleanProperty, GregorianCalendar dateProperty,
-			Double doubleProperty, Integer intProperty, Long longProperty) {
+			Double doubleProperty, Integer intProperty, Long longProperty, Integer id) {
 		FindEntity entity = new FindEntity();
 
+		entity.setId(id);
 		entity.setStringProperty(stringProperty);
 		entity.setBooleanProperty(booleanProperty);
 
@@ -42,7 +45,7 @@ public class FindUtils {
 	public static FindEntity create1() {
 		FindEntity entity = create("find1", Boolean.TRUE,
 				new GregorianCalendar(1990, 0, 1), new Double(111.0),
-				new Integer(1), new Long(11l));
+				new Integer(1), new Long(11l), new Integer(1));
 
 		entity.setNoRepo(NoRepoUtils.create1());
 		entity.setFindDependency(FindDependencyUtils.create1());
@@ -67,7 +70,7 @@ public class FindUtils {
 	public static FindEntity create2() {
 		FindEntity entity = create("find2", Boolean.FALSE,
 				new GregorianCalendar(1990, 0, 2), new Double(222.0),
-				new Integer(2), new Long(22l));
+				new Integer(2), new Long(22l), new Integer(2));
 
 		entity.setNoRepo(NoRepoUtils.create2());
 		entity.setFindDependency(FindDependencyUtils.create2());
@@ -92,7 +95,7 @@ public class FindUtils {
 	public static FindEntity create3() {
 		FindEntity entity = create("find3", Boolean.FALSE,
 				new GregorianCalendar(1990, 0, 3), new Double(333.0),
-				new Integer(3), new Long(33l));
+				new Integer(3), new Long(33l), new Integer(3));
 
 		entity.setNoRepo(NoRepoUtils.create3());
 		entity.setFindDependency(FindDependencyUtils.create3());
@@ -120,7 +123,7 @@ public class FindUtils {
 	public static FindEntity create4() {
 		FindEntity entity = create("find4", Boolean.TRUE,
 				new GregorianCalendar(1990, 0, 4), new Double(444.0),
-				new Integer(4), new Long(44l));
+				new Integer(4), new Long(44l), new Integer(4));
 
 		entity.setFindDependency(FindDependencyUtils.create4());
 
@@ -178,6 +181,52 @@ public class FindUtils {
 	}
 
 	/**
+	 * @param entities
+	 * @param asList
+	 */
+	public static void checkIterable(Iterable<FindEntity> actualEntities,
+			List<FindEntity> expectedEntities) {
+		Assert.assertEquals(TestUtils.getSize(actualEntities),
+				expectedEntities.size(), "Size not equals");
+		
+		for (FindEntity expectedEntity : expectedEntities) {
+			boolean found = false;
+			String identifier = createIdentifier(expectedEntity);
+
+			Iterator<FindEntity> it = actualEntities.iterator();
+
+			while (it.hasNext()) {
+				FindEntity actualEntity = it.next();
+
+				if (identifier.equals(IdentifierUtils
+						.getIdentifier(actualEntity))) {
+					found = true;
+
+					equals(actualEntity, expectedEntity);
+					break;
+				}
+			}
+
+			Assert.assertTrue(found, "Entity [" + identifier + "] not found");
+		}
+	}
+
+	/**
+	 * @param entity
+	 * @return
+	 */
+	public static String createIdentifier(FindEntity entity) {
+		if (entity == null || entity.getId() == null) {
+			return "";
+		}
+
+		StringBuilder builder = new StringBuilder(TestUtils.HOST);
+		builder.append("find/").append(entity.getId());
+
+		return builder.toString();
+	}
+
+	/**
 	 * @param actual
 	 * @param expected
 	 */
@@ -198,7 +247,7 @@ public class FindUtils {
 					if (identifier.equals(IdentifierUtils
 							.getIdentifier(actualEntity))) {
 						found = true;
-						
+
 						FindDependencyUtils
 								.equals(actualEntity, expectedEntity);
 					}

@@ -1,0 +1,9 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+
+<suite name="fullTest">
+	<test name="FindTests">
+		<packages>
+			<package name="at.furti.springrest.client.repositories.find"></package>
+		</packages>
+	</test>
+</suite>
