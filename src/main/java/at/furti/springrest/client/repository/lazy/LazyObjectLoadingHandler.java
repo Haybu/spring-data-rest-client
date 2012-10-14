@@ -1,12 +1,9 @@
 package at.furti.springrest.client.repository.lazy;
 
-import java.util.Collection;
-
 import org.apache.tapestry5.json.JSONObject;
-import org.springframework.util.CollectionUtils;
 
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.link.Link;
+import at.furti.springrest.client.json.LinkWorker;
 import at.furti.springrest.client.repository.exception.LinkCountException;
 import at.furti.springrest.client.util.ReturnValueUtils;
 
@@ -25,12 +22,14 @@ public class LazyObjectLoadingHandler extends LazyLoadingHandlerBase {
 	@Override
 	protected Object loadObject() {
 		try {
-			Collection<Link> links = getLinks();
+			JSONObject object = getObjectFromServer(getHref());
 
 			// No links found --> no object to fill
-			if (CollectionUtils.isEmpty(links)) {
+			if (object == null) {
 				return null;
 			}
+
+			LinkWorker linkWorker = new LinkWorker(object);
 
 			/*
 			 * There is more than one link in the response. Don't know which one
@@ -38,21 +37,18 @@ public class LazyObjectLoadingHandler extends LazyLoadingHandlerBase {
 			 * 
 			 * throw an exception
 			 */
-			if (links.size() > 1) {
+			if (linkWorker.getSelfLink() == null) {
+				// TODO: throw an exception if no self link was found.
+				// Maybe we got a collection from the server?
 				throw new LinkCountException(
-						"More than one link was returned from the "
-								+ "server while lazily initialising a object of typ ["
-								+ type + "]");
+						"No self link was found in the object returned by the server "
+								+ " while lazily initialising a object of typ ["
+								+ type
+								+ "]. Maybe we got a collection from the server.");
 			}
 
-			Link link = links.iterator().next();
-
-			// Simple call the link again, because we want the object for that
-			// link, not the link.
-			JSONObject objectToUse = getObjectFromServer(link.getHref());
-
-			return ReturnValueUtils.convertReturnValue(type, objectToUse,
-					repoRel, getClient());
+			return ReturnValueUtils.convertReturnValue(type, object, repoRel,
+					getClient());
 		} catch (Exception ex) {
 			logger.error("Error instantiating Object", ex);
 			// TODO: rethrow exception??

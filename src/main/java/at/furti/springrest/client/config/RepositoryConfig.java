@@ -1,71 +1,48 @@
 package at.furti.springrest.client.config;
 
-import org.springframework.util.Assert;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.util.CollectionUtils;
+
+import at.furti.springrest.client.util.RepositoryUtils;
 
 public class RepositoryConfig {
 
-	private Class<?> repoClass;
-	private String repoId;
-	private String repoRel;
-	private Class<?> type;
+	private List<RepositoryEntry> repositories;
 
-	public RepositoryConfig(Class<?> repoClass, String repoId, String repoRel, Class<?> type) {
-		super();
-		
-		Assert.notNull(repoClass, "RepoClass must not be null");
-		Assert.notNull(repoId, "RepoId must not be null");
-		Assert.notNull(repoRel, "RepoRel must not be null");
-		Assert.notNull(type, "Type must not be null");
-		
-		this.repoClass = repoClass;
-		this.repoId = repoId;
-		this.repoRel = repoRel;
-		this.type = type;
-	}
-
-	public Class<?> getRepoClass() {
-		return repoClass;
-	}
-
-	public void setRepoClass(Class<?> repoClass) {
-		this.repoClass = repoClass;
-	}
-
-	public String getRepoId() {
-		return repoId;
-	}
-
-	public void setRepoId(String repoId) {
-		this.repoId = repoId;
-	}
-
-	public String getRepoRel() {
-		return repoRel;
-	}
-
-	public void setRepoRel(String repoRel) {
-		this.repoRel = repoRel;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (!(obj instanceof RepositoryConfig)) {
-			return false;
+	public void addRepository(Class<?> repoClass) {
+		if (repoClass == null) {
+			return;
 		}
 
-		return getRepoClass().equals(((RepositoryConfig) obj).getClass());
+		if (repositories == null) {
+			repositories = new ArrayList<RepositoryEntry>();
+		}
+
+		repositories.add(createEntry(repoClass));
 	}
 
-	@Override
-	public int hashCode() {
-		return repoClass.hashCode();
+	public List<RepositoryEntry> getRepositories() {
+		return repositories;
 	}
 
-	public Class<?> getType() {
-		return type;
+	/**
+	 * @param repoClass
+	 * @return
+	 */
+	private RepositoryEntry createEntry(Class<?> repoClass) {
+		return new RepositoryEntry(repoClass,
+				RepositoryUtils.getRepositoryId(repoClass),
+				RepositoryUtils.getRepositoryRel(repoClass),
+				RepositoryUtils.extractEntryType(repoClass),
+				RepositoryUtils.extractIdType(repoClass));
 	}
 
-	public void setType(Class<?> type) {
-		this.type = type;
+	/**
+	 * @return
+	 */
+	public boolean hasRepositories() {
+		return !CollectionUtils.isEmpty(repositories);
 	}
 }

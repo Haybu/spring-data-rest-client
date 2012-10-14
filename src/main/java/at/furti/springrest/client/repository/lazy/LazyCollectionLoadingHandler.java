@@ -9,7 +9,6 @@ import java.util.Set;
 import org.springframework.util.CollectionUtils;
 
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.link.Link;
 import at.furti.springrest.client.util.ReturnValueUtils;
 
 public class LazyCollectionLoadingHandler extends LazyLoadingHandlerBase {
@@ -29,7 +28,7 @@ public class LazyCollectionLoadingHandler extends LazyLoadingHandlerBase {
 	@Override
 	protected Object loadObject() {
 		try {
-			Collection<Link> links = getLinks();
+			Collection<String> links = getLinks();
 
 			// No Links found --> return null;
 			if (CollectionUtils.isEmpty(links)) {
@@ -46,10 +45,9 @@ public class LazyCollectionLoadingHandler extends LazyLoadingHandlerBase {
 				// TODO: throw exception. Only set and list are allowed for now
 			}
 
-			for (Link link : links) {
+			for (String link : links) {
 				ret.add(ReturnValueUtils.convertReturnValue(genericType,
-						getObjectFromServer(link.getHref()), repoRel,
-						getClient()));
+						getObjectFromServer(link), repoRel, getClient()));
 			}
 
 			return ret;

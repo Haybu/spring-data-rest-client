@@ -7,7 +7,7 @@ import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodInvocation;
 import org.springframework.http.HttpMethod;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Response;
@@ -21,7 +21,7 @@ import at.furti.springrest.client.util.ReturnValueUtils;
  */
 public class FindAllMethodAdvice extends RepositoryMethodAdvice {
 
-	public FindAllMethodAdvice(LinkManager linkManager, RepositoryConfig entry,
+	public FindAllMethodAdvice(LinkManager linkManager, RepositoryEntry entry,
 			DataRestClient client) {
 		super(linkManager, HttpMethod.GET, entry, client);
 	}
@@ -64,8 +64,9 @@ public class FindAllMethodAdvice extends RepositoryMethodAdvice {
 			for (Response response : responses) {
 				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
-				ret.add(ReturnValueUtils.convertReturnValue(entry.getType(),
-						data, entry.getRepoRel(), getClient()));
+				ret.add(ReturnValueUtils.convertReturnValue(
+						entry.getEntityType(), data, entry.getRepoRel(),
+						getClient()));
 			}
 		} catch (Exception ex) {
 			invoaction.setCheckedException(ex);
@@ -87,10 +88,14 @@ public class FindAllMethodAdvice extends RepositoryMethodAdvice {
 			try {
 				JSONObject data = JsonUtils.toJsonObject(response.getBody());
 
-				invoaction
-						.setReturnValue(ReturnValueUtils.convertCollection(
-								entry.getType(), data, entry.getRepoRel(),
-								getClient()));
+				if (data == null || data.isNull(JsonUtils.CONTENT)) {
+					invoaction.setReturnValue(null);
+				} else {
+					invoaction.setReturnValue(ReturnValueUtils
+							.convertCollection(entry.getEntityType(),
+									data.getJSONArray(JsonUtils.CONTENT),
+									entry.getRepoRel(), getClient()));
+				}
 			} catch (Exception ex) {
 				invoaction.setCheckedException(ex);
 				invoaction.rethrow();

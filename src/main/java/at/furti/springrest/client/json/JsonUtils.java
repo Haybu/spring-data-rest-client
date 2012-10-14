@@ -7,6 +7,8 @@ import org.springframework.util.StringUtils;
 
 public class JsonUtils {
 
+	public static final String CONTENT = "content";
+
 	/**
 	 * @param in
 	 * @return

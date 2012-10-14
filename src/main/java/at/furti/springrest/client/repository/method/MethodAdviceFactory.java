@@ -5,7 +5,7 @@ import java.lang.reflect.Method;
 import org.apache.tapestry5.plastic.MethodAdvice;
 import org.springframework.data.rest.repository.annotation.RestResource;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.LinkManager;
 
@@ -27,7 +27,7 @@ public class MethodAdviceFactory {
 	 * @param linkManager
 	 * @return
 	 */
-	public static MethodAdvice createAdvice(Method m, RepositoryConfig entry,
+	public static MethodAdvice createAdvice(Method m, RepositoryEntry entry,
 			DataRestClient client, LinkManager linkManager) {
 		if (m.isAnnotationPresent(RestResource.class)) {
 			RestResource resource = m.getAnnotation(RestResource.class);

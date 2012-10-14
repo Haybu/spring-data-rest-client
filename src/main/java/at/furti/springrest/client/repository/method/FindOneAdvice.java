@@ -7,7 +7,7 @@ import org.apache.tapestry5.plastic.MethodInvocation;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Request.ParameterType;
@@ -18,7 +18,7 @@ import at.furti.springrest.client.util.ReturnValueUtils;
 
 public class FindOneAdvice extends RepositoryMethodAdvice {
 
-	public FindOneAdvice(LinkManager linkManager, RepositoryConfig entry,
+	public FindOneAdvice(LinkManager linkManager, RepositoryEntry entry,
 			DataRestClient client) {
 		super(linkManager, HttpMethod.GET, entry, client);
 	}
@@ -37,7 +37,7 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 	protected void handleResponse(MethodInvocation invoaction,
 			List<Response> responses, String link) {
 		Response response = getFirstResponse(responses);
-		
+
 		if (response == null || response.getBody() == null) {
 			invoaction.setReturnValue(null);
 		} else {
@@ -49,8 +49,8 @@ public class FindOneAdvice extends RepositoryMethodAdvice {
 					invoaction.setReturnValue(null);
 				} else {
 					Object value = ReturnValueUtils.convertReturnValue(
-							getEntry().getType(), data,
-							getEntry().getRepoRel(), getClient());
+							getEntry().getEntityType(), data, getEntry()
+									.getRepoRel(), getClient());
 
 					invoaction.setReturnValue(value);
 				}

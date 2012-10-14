@@ -13,11 +13,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.util.Assert;
 
 import at.furti.springrest.client.base.ClientAware;
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Response;
 import at.furti.springrest.client.http.link.LinkManager;
+import at.furti.springrest.client.repository.exception.NotExportedException;
 
 /**
  * @author Daniel
@@ -30,10 +31,10 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 
 	protected LinkManager linkManager;
 	protected HttpMethod method;
-	protected RepositoryConfig entry;
+	protected RepositoryEntry entry;
 
 	public RepositoryMethodAdvice(LinkManager linkManager, HttpMethod method,
-			RepositoryConfig entry, DataRestClient client) {
+			RepositoryEntry entry, DataRestClient client) {
 		super(client);
 
 		Assert.notNull(linkManager, "LinkManager must not be null");
@@ -102,19 +103,45 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 			return null;
 		}
 
+		Response response = null;
+
 		switch (method) {
 		case DELETE:
-			return execute(RequestType.DELETE, request);
+			response = execute(RequestType.DELETE, request);
+			break;
 		case POST:
-			return execute(RequestType.POST, request);
+			response = execute(RequestType.POST, request);
+			break;
 		case GET:
-			return execute(RequestType.GET, request);
+			response = execute(RequestType.GET, request);
+			break;
+		default:
+			break;
 		}
 
-		return null;
+		return checkStatus(response);
 	}
 
-	protected RepositoryConfig getEntry() {
+	/**
+	 * @param response
+	 * @return
+	 */
+	private Response checkStatus(Response response) {
+		if (response != null) {
+			switch (response.getStatus()) {
+			case NO_CONTENT:
+				return null;
+			case METHOD_NOT_ALLOWED:
+				throw new NotExportedException("Method is not exported");
+			default:
+				break;
+			}
+		}
+
+		return response;
+	}
+
+	protected RepositoryEntry getEntry() {
 		return entry;
 	}
 
@@ -152,7 +179,8 @@ public abstract class RepositoryMethodAdvice extends ClientAware implements
 		return null;
 	}
 
-	protected abstract Request createReqest(String link, Object... params) throws Exception;
+	protected abstract Request createReqest(String link, Object... params)
+			throws Exception;
 
 	protected abstract void handleResponse(MethodInvocation invocation,
 			List<Response> responses, String link);

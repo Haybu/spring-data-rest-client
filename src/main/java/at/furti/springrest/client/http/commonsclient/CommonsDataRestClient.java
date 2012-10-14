@@ -15,6 +15,7 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicHeader;
+import org.springframework.http.HttpStatus;
 
 import at.furti.springrest.client.http.DataRestClientBase;
 import at.furti.springrest.client.http.Request;
@@ -154,7 +155,7 @@ public class CommonsDataRestClient extends DataRestClientBase {
 	 */
 	private Response createResponse(HttpResponse response) throws IOException {
 		Response ret = new Response(IOUtils.toByteArray(response.getEntity()
-				.getContent()));
+				.getContent()), getStatus(response));
 
 		response.getEntity().getContent().close();
 
@@ -167,5 +168,13 @@ public class CommonsDataRestClient extends DataRestClientBase {
 		}
 
 		return ret;
+	}
+
+	private HttpStatus getStatus(HttpResponse response) {
+		if (response.getStatusLine() == null) {
+			return null;
+		}
+
+		return HttpStatus.valueOf(response.getStatusLine().getStatusCode());
 	}
 }

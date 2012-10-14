@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.tapestry5.json.JSONObject;
 import org.apache.tapestry5.plastic.MethodInvocation;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Response;
 import at.furti.springrest.client.http.link.LinkManager;
@@ -14,7 +14,7 @@ import at.furti.springrest.client.json.LinkWorker;
 
 public class ExistsAdvice extends FindOneAdvice {
 
-	public ExistsAdvice(LinkManager linkManager, RepositoryConfig entry,
+	public ExistsAdvice(LinkManager linkManager, RepositoryEntry entry,
 			DataRestClient client) {
 		super(linkManager, entry, client);
 	}

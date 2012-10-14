@@ -3,14 +3,18 @@ package at.furti.springrest.client.http;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.http.HttpStatus;
+
 public class Response {
 
 	private byte[] body;
 	private Map<String, String> headers;
+	private HttpStatus status;
 
-	public Response(byte[] body) {
+	public Response(byte[] body, HttpStatus status) {
 		super();
 		this.body = body;
+		this.status = status;
 	}
 
 	public byte[] getBody() {
@@ -39,5 +43,13 @@ public class Response {
 		}
 
 		this.headers.put(name, value);
+	}
+
+	public HttpStatus getStatus() {
+		return status;
+	}
+
+	public void setStatus(HttpStatus status) {
+		this.status = status;
 	}
 }

@@ -18,10 +18,10 @@ import at.furti.springrest.client.util.RestCollectionUtils;
 public class RestRepositoryCreator implements FactoryBean<Object> {
 
 	private DataRestClient client;
-	private RepositoryConfig entry;
+	private RepositoryEntry entry;
 	private LinkManager linkManager;
 
-	public RestRepositoryCreator(DataRestClient client, RepositoryConfig entry,
+	public RestRepositoryCreator(DataRestClient client, RepositoryEntry entry,
 			LinkManager linkManager) {
 		Assert.notNull(client, "Client is required");
 		Assert.notNull(entry, "Entry is required");
@@ -39,7 +39,7 @@ public class RestRepositoryCreator implements FactoryBean<Object> {
 						RepositoryClassTransformer.CLIENT_KEY, client,
 						RepositoryClassTransformer.LINK_MANAGER_KEY,
 						linkManager,
-						RepositoryClassTransformer.REPO_CONFIG_KEY, entry));
+						RepositoryClassTransformer.REPO_ENTRY_KEY, entry));
 	}
 
 	public Class<?> getObjectType() {

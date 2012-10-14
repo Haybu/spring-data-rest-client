@@ -2,18 +2,18 @@ package at.furti.springrest.client.util;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.tapestry5.json.JSONArray;
 import org.apache.tapestry5.json.JSONObject;
-import org.springframework.util.CollectionUtils;
 
 import at.furti.springrest.client.bytecode.EntityClassTransformer;
 import at.furti.springrest.client.exception.IncomaptiblePropertyTypeException;
 import at.furti.springrest.client.http.DataRestClient;
-import at.furti.springrest.client.http.link.Link;
 import at.furti.springrest.client.json.JsonToEntityWorker;
 import at.furti.springrest.client.json.LinkWorker;
-import at.furti.springrest.client.repository.lazy.LazyInitializingIterable;
 
 public final class ReturnValueUtils {
 
@@ -22,24 +22,36 @@ public final class ReturnValueUtils {
 	 * @param stream
 	 * @return
 	 */
-	public static Object convertCollection(Class<?> entityType,
-			JSONObject data, String repoRel, DataRestClient client) {
-		if (data == null) {
+	public static Object convertCollection(Class<?> entityType, JSONArray data,
+			String repoRel, DataRestClient client)
+			throws IncomaptiblePropertyTypeException, InstantiationException,
+			IllegalAccessException, InvocationTargetException,
+			NoSuchMethodException, IOException {
+		if (data == null || data.length() == 0) {
 			return null;
 		}
 
-		LinkWorker worker = new LinkWorker(data);
-		String entityRel = repoRel + "." + entityType.getSimpleName();
+		List<Object> ret = new ArrayList<Object>();
 
-		Collection<Link> links = worker.getLinks(entityRel);
+		Iterator<Object> it = data.iterator();
+
+		while (it.hasNext()) {
+			JSONObject object = (JSONObject) it.next();
+
+			ret.add(convertReturnValue(entityType, object, repoRel, client));
+		}
+
+		// LinkWorker worker = new LinkWorker(data);
+		// String entityRel = repoRel + "." + entityType.getSimpleName();
+
+		// Collection<Link> links = worker.getLinks(entityRel);
 
 		// If no links where found --> return null
-		if (CollectionUtils.isEmpty(links)) {
-			return null;
-		}
+		// if (CollectionUtils.isEmpty(links)) {
+		// return null;
+		// }
 
-		// Return a lazy initializing iteratable
-		return new LazyInitializingIterable(links, repoRel, client, entityType);
+		return ret;
 	}
 
 	/**
@@ -57,7 +69,8 @@ public final class ReturnValueUtils {
 
 		LinkWorker linkWorker = new LinkWorker(data);
 
-		JsonToEntityWorker entityWorker = new JsonToEntityWorker(data, client, rel);
+		JsonToEntityWorker entityWorker = new JsonToEntityWorker(data, client,
+				rel);
 
 		Object o = EntityClassTransformer.getInstance().getTransformedObject(
 				type,

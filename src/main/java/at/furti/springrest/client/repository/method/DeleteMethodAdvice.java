@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.tapestry5.plastic.MethodInvocation;
 import org.springframework.http.HttpMethod;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Request.ParameterType;
@@ -19,7 +19,7 @@ import at.furti.springrest.client.util.IdentifierUtils;
  */
 public class DeleteMethodAdvice extends RepositoryMethodAdvice {
 
-	public DeleteMethodAdvice(LinkManager linkManager, RepositoryConfig entry,
+	public DeleteMethodAdvice(LinkManager linkManager, RepositoryEntry entry,
 			DataRestClient client) {
 		super(linkManager, HttpMethod.DELETE, entry, client);
 	}
@@ -27,7 +27,7 @@ public class DeleteMethodAdvice extends RepositoryMethodAdvice {
 	@Override
 	protected Request createReqest(String link, Object... params) {
 		if (Iterable.class.isAssignableFrom(params[0].getClass())
-				|| getEntry().getType().isAssignableFrom(params[0].getClass())) {
+				|| getEntry().getEntityType().isAssignableFrom(params[0].getClass())) {
 			return new Request(IdentifierUtils.getIdentifier(params[0]));
 		} else {
 			return new Request(link + "/{id}").addParameter(ParameterType.PATH,

@@ -167,12 +167,29 @@ public final class RepositoryUtils {
 				if (paramType.getRawType().equals(CrudRepository.class)) {
 					Type[] typeArguments = paramType.getActualTypeArguments();
 
-					for (Type argument : typeArguments) {
-						if (argument instanceof Class) {
-							return (Class<?>) argument;
-						} else {
-							return null;
-						}
+					if (typeArguments.length >= 1
+							&& typeArguments[0] instanceof Class) {
+						return (Class<?>) typeArguments[0];
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public static Class<?> extractIdType(Class<?> clazz) {
+		Type[] types = clazz.getGenericInterfaces();
+
+		for (Type t : types) {
+			if (t instanceof ParameterizedType) {
+				ParameterizedType paramType = (ParameterizedType) t;
+
+				if (paramType.getRawType().equals(CrudRepository.class)) {
+					Type[] typeArguments = paramType.getActualTypeArguments();
+
+					if (typeArguments.length >= 2
+							&& typeArguments[1] instanceof Class) {
+						return (Class<?>) typeArguments[1];
 					}
 				}
 			}

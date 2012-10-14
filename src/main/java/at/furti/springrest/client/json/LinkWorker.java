@@ -21,7 +21,7 @@ import at.furti.springrest.client.json.exception.MissformedLinkException;
  */
 public class LinkWorker extends JsonWorker<JSONObject> {
 
-	private static final String LINKS = "_links";
+	private static final String LINKS = "links";
 	private static final String HREF = "href";
 	private static final String REL = "rel";
 	private static final String SELF = "self";

@@ -9,7 +9,7 @@ import org.apache.tapestry5.plastic.MethodInvocation;
 import org.springframework.http.HttpMethod;
 import org.springframework.util.CollectionUtils;
 
-import at.furti.springrest.client.config.RepositoryConfig;
+import at.furti.springrest.client.config.RepositoryEntry;
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.Request;
 import at.furti.springrest.client.http.Response;
@@ -20,7 +20,7 @@ import at.furti.springrest.client.util.ReturnValueUtils;
 
 public class SaveMethodAdvice extends RepositoryMethodAdvice {
 
-	public SaveMethodAdvice(LinkManager linkManager, RepositoryConfig entry,
+	public SaveMethodAdvice(LinkManager linkManager, RepositoryEntry entry,
 			DataRestClient client) {
 		super(linkManager, HttpMethod.POST, entry, client);
 	}
@@ -92,9 +92,9 @@ public class SaveMethodAdvice extends RepositoryMethodAdvice {
 			if (newEntity == null) {
 				return null;
 			} else {
-				return ReturnValueUtils.convertReturnValue(
-						getEntry().getType(), newEntity, getEntry()
-								.getRepoRel(), getClient());
+				return ReturnValueUtils.convertReturnValue(getEntry()
+						.getEntityType(), newEntity, getEntry().getRepoRel(),
+						getClient());
 			}
 		}
 	}

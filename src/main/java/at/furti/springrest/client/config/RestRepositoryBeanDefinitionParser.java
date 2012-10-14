@@ -1,8 +1,6 @@
 package at.furti.springrest.client.config;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
@@ -24,12 +22,10 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.Repository;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Element;
 
 import at.furti.springrest.client.http.DataRestClient;
 import at.furti.springrest.client.http.link.LinkManager;
-import at.furti.springrest.client.util.RepositoryUtils;
 
 /**
  * Creates for each {@link CrudRepository} in the basePackage a FactoryBean that
@@ -75,16 +71,17 @@ public class RestRepositoryBeanDefinitionParser implements BeanDefinitionParser 
 				client);
 
 		try {
-			List<RepositoryConfig> entries = getConfig(basePackage);
+			RepositoryConfig config = getConfig(basePackage);
 
-			if (CollectionUtils.isEmpty(entries)) {
+			if (!config.hasRepositories()) {
 				logger.warn("No Repositories found in basePackage [{}]",
 						basePackage);
 				return null;
 			}
 
-			for (RepositoryConfig entry : entries) {
-				logger.debug("Implementing Repository [{}]", entry.getType());
+			for (RepositoryEntry entry : config.getRepositories()) {
+				logger.debug("Adding BeanDefinition for Repository [{}]",
+						entry.getRepoClass());
 
 				createBeanDefinition(entry, parserContext, client, linkManager);
 			}
@@ -124,7 +121,7 @@ public class RestRepositoryBeanDefinitionParser implements BeanDefinitionParser 
 	 * @param parserContext
 	 * @param client
 	 */
-	private void createBeanDefinition(RepositoryConfig entry,
+	private void createBeanDefinition(RepositoryEntry entry,
 			ParserContext parserContext, RuntimeBeanReference client,
 			RuntimeBeanReference linkManager) {
 		RootBeanDefinition repositoryDefinition = new RootBeanDefinition(
@@ -178,9 +175,8 @@ public class RestRepositoryBeanDefinitionParser implements BeanDefinitionParser 
 	 * @return
 	 * @throws IOException
 	 */
-	private List<RepositoryConfig> getConfig(String basePackage)
-			throws IOException {
-		List<RepositoryConfig> config = new ArrayList<RepositoryConfig>();
+	private RepositoryConfig getConfig(String basePackage) throws IOException {
+		RepositoryConfig config = new RepositoryConfig();
 
 		Resource[] resources = this.patternResolver
 				.getResources(getPattern(basePackage));
@@ -204,10 +200,7 @@ public class RestRepositoryBeanDefinitionParser implements BeanDefinitionParser 
 						logger.debug("Add repositoryconfig for class [{}]",
 								clazz);
 
-						config.add(new RepositoryConfig(clazz, RepositoryUtils
-								.getRepositoryId(clazz), RepositoryUtils
-								.getRepositoryRel(clazz), RepositoryUtils
-								.extractEntryType(clazz)));
+						config.addRepository(clazz);
 					}
 				} catch (ClassNotFoundException cnf) {
 					logger.error("Class from resource not found", cnf);
